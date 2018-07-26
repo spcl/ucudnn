@@ -1,0 +1,6 @@
+file(GLOB cppFiles *.cpp)
+foreach(cppFile ${cppFiles})
+  get_filename_component(cppFileName ${cppFile} NAME_WE)
+  add_executable(${cppFileName} ${cppFile})
+  target_link_libraries(${cppFileName} cudart cublas curand cudnn ucudnn)
+endforeach(cppFile)

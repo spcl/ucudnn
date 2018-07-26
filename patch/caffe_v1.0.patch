@@ -1,0 +1,145 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 08f56a33..db06552d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -60,6 +60,11 @@ endif()
+ # ---[ Warnings
+ caffe_warnings_disable(CMAKE_CXX_FLAGS -Wno-sign-compare -Wno-uninitialized)
+ 
++# ---[ u-cuDNN configurations
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lucudnn")
++set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lucudnn")
++
+ # ---[ Config generation
+ configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_config.h")
+ 
+diff --git a/include/caffe/layers/cudnn_conv_layer.hpp b/include/caffe/layers/cudnn_conv_layer.hpp
+index 31fe49a7..5e32e283 100644
+--- a/include/caffe/layers/cudnn_conv_layer.hpp
++++ b/include/caffe/layers/cudnn_conv_layer.hpp
+@@ -3,6 +3,8 @@
+ 
+ #include <vector>
+ 
++#include <ucudnn/ucudnn.h>
++
+ #include "caffe/blob.hpp"
+ #include "caffe/layer.hpp"
+ #include "caffe/proto/caffe.pb.h"
+@@ -44,7 +46,7 @@ class CuDNNConvolutionLayer : public ConvolutionLayer<Dtype> {
+       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+ 
+   bool handles_setup_;
+-  cudnnHandle_t* handle_;
++  UcudnnHandle_t* handle_;
+   cudaStream_t*  stream_;
+ 
+   // algorithms for forward and backwards convolutions
+@@ -64,6 +66,9 @@ class CuDNNConvolutionLayer : public ConvolutionLayer<Dtype> {
+   size_t workspaceSizeInBytes;  // size of underlying storage
+   void *workspaceData;  // underlying storage
+   void **workspace;  // aliases into workspaceData
++
++private:
++  ucudnn::LayerId getLayerId() const { return ucudnn::stringToLayerId(this->layer_param().name()); }
+ };
+ #endif
+ 
+diff --git a/src/caffe/layers/cudnn_conv_layer.cpp b/src/caffe/layers/cudnn_conv_layer.cpp
+index efc9e04e..1dd71d25 100644
+--- a/src/caffe/layers/cudnn_conv_layer.cpp
++++ b/src/caffe/layers/cudnn_conv_layer.cpp
+@@ -20,7 +20,7 @@ void CuDNNConvolutionLayer<Dtype>::LayerSetUp(
+   ConvolutionLayer<Dtype>::LayerSetUp(bottom, top);
+   // Initialize CUDA streams and cuDNN.
+   stream_         = new cudaStream_t[this->group_ * CUDNN_STREAMS_PER_GROUP];
+-  handle_         = new cudnnHandle_t[this->group_ * CUDNN_STREAMS_PER_GROUP];
++  handle_         = new UcudnnHandle_t[this->group_ * CUDNN_STREAMS_PER_GROUP];
+ 
+   // Initialize algorithm arrays
+   fwd_algo_       = new cudnnConvolutionFwdAlgo_t[bottom.size()];
+@@ -135,7 +135,8 @@ void CuDNNConvolutionLayer<Dtype>::Reshape(
+       top_descs_[i],
+       CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
+       workspace_limit_bytes,
+-      &fwd_algo_[i]));
++      &fwd_algo_[i],
++      getLayerId()));
+ 
+     CUDNN_CHECK(cudnnGetConvolutionForwardWorkspaceSize(handle_[0],
+       bottom_descs_[i],
+@@ -143,29 +144,34 @@ void CuDNNConvolutionLayer<Dtype>::Reshape(
+       conv_descs_[i],
+       top_descs_[i],
+       fwd_algo_[i],
+-      &(workspace_fwd_sizes_[i])));
++      &(workspace_fwd_sizes_[i]),
++      getLayerId()));
+ 
+     // choose backward algorithm for filter
+     CUDNN_CHECK(cudnnGetConvolutionBackwardFilterAlgorithm(handle_[0],
+           bottom_descs_[i], top_descs_[i], conv_descs_[i], filter_desc_,
+           CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT,
+-          workspace_limit_bytes, &bwd_filter_algo_[i]) );
++          workspace_limit_bytes, &bwd_filter_algo_[i],
++          getLayerId()));
+ 
+     // get workspace for backwards filter algorithm
+     CUDNN_CHECK(cudnnGetConvolutionBackwardFilterWorkspaceSize(handle_[0],
+           bottom_descs_[i], top_descs_[i], conv_descs_[i], filter_desc_,
+-          bwd_filter_algo_[i], &workspace_bwd_filter_sizes_[i]));
++          bwd_filter_algo_[i], &workspace_bwd_filter_sizes_[i],
++          getLayerId()));
+ 
+     // choose backward algo for data
+     CUDNN_CHECK(cudnnGetConvolutionBackwardDataAlgorithm(handle_[0],
+           filter_desc_, top_descs_[i], conv_descs_[i], bottom_descs_[i],
+           CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT,
+-        workspace_limit_bytes, &bwd_data_algo_[i]));
++          workspace_limit_bytes, &bwd_data_algo_[i],
++          getLayerId()));
+ 
+     // get workspace size
+     CUDNN_CHECK(cudnnGetConvolutionBackwardDataWorkspaceSize(handle_[0],
+           filter_desc_, top_descs_[i], conv_descs_[i], bottom_descs_[i],
+-          bwd_data_algo_[i], &workspace_bwd_data_sizes_[i]) );
++          bwd_data_algo_[i], &workspace_bwd_data_sizes_[i],
++          getLayerId()));
+   }
+ 
+   // reduce over all workspace sizes to get a maximum to allocate / reallocate
+diff --git a/src/caffe/layers/cudnn_conv_layer.cu b/src/caffe/layers/cudnn_conv_layer.cu
+index 8bc53462..0f7b6178 100644
+--- a/src/caffe/layers/cudnn_conv_layer.cu
++++ b/src/caffe/layers/cudnn_conv_layer.cu
+@@ -25,7 +25,8 @@ void CuDNNConvolutionLayer<Dtype>::Forward_gpu(
+             conv_descs_[i],
+             fwd_algo_[i], workspace[g], workspace_fwd_sizes_[i],
+             cudnn::dataType<Dtype>::zero,
+-            top_descs_[i], top_data + top_offset_ * g));
++            top_descs_[i], top_data + top_offset_ * g,
++            getLayerId()));
+ 
+       // Bias.
+       if (this->bias_term_) {
+@@ -83,7 +84,8 @@ void CuDNNConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+               bwd_filter_algo_[i], workspace[1*this->group_ + g],
+               workspace_bwd_filter_sizes_[i],
+               cudnn::dataType<Dtype>::one,
+-              filter_desc_, weight_diff + this->weight_offset_ * g));
++              filter_desc_, weight_diff + this->weight_offset_ * g,
++              getLayerId()));
+       }
+ 
+       // Gradient w.r.t. bottom data.
+@@ -101,7 +103,8 @@ void CuDNNConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+               bwd_data_algo_[i], workspace[2*this->group_ + g],
+               workspace_bwd_data_sizes_[i],
+               cudnn::dataType<Dtype>::zero,
+-              bottom_descs_[i], bottom_diff + bottom_offset_ * g));
++              bottom_descs_[i], bottom_diff + bottom_offset_ * g,
++              getLayerId()));
+       }
+     }
+ 
