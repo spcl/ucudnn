@@ -22,13 +22,17 @@ using ucudnn::getFreeDeviceMemorySize;
 using ucudnn::LayerId;
 
 cudnnStatus_t cudnnCreate(UcudnnHandle_t *handle) {
-  handle->create();
-  return CUDNN_STATUS_SUCCESS;
+  return cudnnCreate(handle->handle_);
+
+//  handle->create();
+//  return CUDNN_STATUS_SUCCESS;
 }
 
 cudnnStatus_t cudnnDestroy(UcudnnHandle_t handle) {
-  handle.destroy();
-  return CUDNN_STATUS_SUCCESS;
+  return cudnnDestroy(handle.handle_);
+
+//  handle.destroy();
+//  return CUDNN_STATUS_SUCCESS;
 }
 
 // cudnnConvolution*
@@ -47,13 +51,33 @@ cudnnStatus_t cudnnConvolutionForward(
 				      const cudnnTensorDescriptor_t      yDesc,
 				      void                               *y,
 				      const LayerId layerId) {
-  const ConvType convType = ConvType::Forward;
-  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-  return handle.convolution(convParam, convType,
-			    wDesc, convDesc,
-			    (void *) x, y, (void *) w, workSpace, workSpaceSizeInBytes,
-			    alpha, beta,
-			    layerId);
+  // forward all conv calls for now
+  handle.log("cudnnConvolutionForward");
+
+  return cudnnConvolutionForward(
+        handle.handle_,
+        alpha,
+        xDesc,
+        x,
+        wDesc,
+        w,
+        convDesc,
+        algo,
+        workSpace,
+        workSpaceSizeInBytes,
+        beta,
+        yDesc,
+        y,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::Forward;
+//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
+//  return handle.convolution(convParam, convType,
+//			    wDesc, convDesc,
+//			    (void *) x, y, (void *) w, workSpace, workSpaceSizeInBytes,
+//			    alpha, beta,
+//			    layerId);
 }
 cudnnStatus_t cudnnConvolutionBackwardData(
 					   UcudnnHandle_t                     handle,
@@ -70,13 +94,30 @@ cudnnStatus_t cudnnConvolutionBackwardData(
 					   const cudnnTensorDescriptor_t      dxDesc,
 					   void                               *dx,
 					   const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardData;
-  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-  return handle.convolution(convParam, convType,
-			    wDesc, convDesc,
-			    dx, (void *) dy, (void *) w, workSpace, workSpaceSizeInBytes,
-			    alpha, beta,
-			    layerId);
+  handle.log("cudnnConvolutionBackwardData");
+  return cudnnConvolutionBackwardData(
+        handle.handle_,
+        alpha,
+        wdesc,
+        w,
+        dyDesc,
+        dy,
+        convDesc,
+        algo,
+        workSpace,
+        workSpaceSizeInBytes,
+        beta,
+        dxDesc,
+        dx,
+        layerId
+  );
+//  const ConvType convType = ConvType::BackwardData;
+//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
+//  return handle.convolution(convParam, convType,
+//			    wDesc, convDesc,
+//			    dx, (void *) dy, (void *) w, workSpace, workSpaceSizeInBytes,
+//			    alpha, beta,
+//			    layerId);
 }
 cudnnStatus_t cudnnConvolutionBackwardFilter(
 					     UcudnnHandle_t                     handle,
@@ -93,13 +134,31 @@ cudnnStatus_t cudnnConvolutionBackwardFilter(
 					     const cudnnFilterDescriptor_t      dwDesc,
 					     void                               *dw,
 					     const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardFilter;
-  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
-  return handle.convolution(convParam, convType,
-			    dwDesc, convDesc,
-			    (void *) x, (void *) dy, dw, workSpace, workSpaceSizeInBytes,
-			    alpha, beta,
-			    layerId);
+  handle.log("cudnnConvolutionBackwardFilter");
+  return cudnnConvolutionBackwardFilter(
+        handle.handle_,
+        alpha,
+        xDesc,
+        x,
+        dyDesc,
+        dy,
+        convDesc,
+        algo,
+        workSpace,
+        workSpaceSizeInBytes,
+        beta,
+        dwDesc,
+        dw,
+        layerId
+  );
+
+//  const ConvType convType = ConvType::BackwardFilter;
+//  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
+//  return handle.convolution(convParam, convType,
+//			    dwDesc, convDesc,
+//			    (void *) x, (void *) dy, dw, workSpace, workSpaceSizeInBytes,
+//			    alpha, beta,
+//			    layerId);
 }
 
 // cudnnGetConvolution*Algorithm
@@ -113,11 +172,23 @@ cudnnStatus_t cudnnGetConvolutionForwardAlgorithm(
 						  size_t                             memoryLimitInBytes,
 						  cudnnConvolutionFwdAlgo_t          *algo,
 						  const LayerId layerId) {
-  const ConvType convType = ConvType::Forward;
-  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
-  *algo = (cudnnConvolutionFwdAlgo_t) 0;
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionForwardAlgorithm");
+  return cudnnGetConvolutionForwardAlgorithm(
+        handle.handle_,
+        xDesc,
+        wDesc,
+        convDesc,
+        yDesc,
+        preference,
+        memoryLimitInBytes,
+        algo,
+        layerId
+        );
+//  const ConvType convType = ConvType::Forward;
+//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
+//  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
+//  *algo = (cudnnConvolutionFwdAlgo_t) 0;
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t  cudnnGetConvolutionBackwardDataAlgorithm(
 							UcudnnHandle_t                      handle,
@@ -129,11 +200,23 @@ cudnnStatus_t  cudnnGetConvolutionBackwardDataAlgorithm(
 							size_t                              memoryLimitInBytes,
 							cudnnConvolutionBwdDataAlgo_t       *algo,
 							const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardData;
-  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
-  *algo = (cudnnConvolutionBwdDataAlgo_t) 0;
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionBackwardDataAlgorithm");
+  return cudnnGetConvolutionBackwardDataAlgorithm(
+        handle.handle_,
+        wDesc,
+        dyDesc,
+        convDesc,
+        dxDesc,
+        preference,
+        memoryLimitInBytes,
+        algo,
+        layerId
+        );
+//  const ConvType convType = ConvType::BackwardData;
+//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
+//  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
+//  *algo = (cudnnConvolutionBwdDataAlgo_t) 0;
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm(
 							 UcudnnHandle_t                        handle,
@@ -145,11 +228,23 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm(
 							 size_t                                memoryLimitInBytes,
 							 cudnnConvolutionBwdFilterAlgo_t       *algo,
 							 const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardFilter;
-  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
-  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
-  *algo = (cudnnConvolutionBwdFilterAlgo_t) 0;
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionBackwardFilterAlgorithm");
+  return cudnnGetConvolutionBackwardFilterAlgorithm(
+        handle.handle_,
+        xDesc,
+        dyDesc,
+        convDesc,
+        dwDesc,
+        preference,
+        memoryLimitInBytes,
+        algo,
+        layerId
+  );
+//  const ConvType convType = ConvType::BackwardFilter;
+//  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
+//  handle.getAlgorithm(convParam, convType, memoryLimitInBytes, layerId);
+//  *algo = (cudnnConvolutionBwdFilterAlgo_t) 0;
+//  return CUDNN_STATUS_SUCCESS;
 }
 
 
@@ -164,8 +259,21 @@ cudnnStatus_t cudnnGetConvolutionForwardAlgorithm_v7(
 						     int                               *returnedAlgoCount,
 						     cudnnConvolutionFwdAlgoPerf_t     *perfResults,
 						     const LayerId layerId) {
-  return cudnnFindConvolutionForwardAlgorithm(handle, srcDesc, filterDesc, convDesc, destDesc,
-					      requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
+  handle.log("cudnnGetConvolutionForwardAlgorithm_v7");
+  return cudnnGetConvolutionForwardAlgorithm_v7(
+        handle.handle_,
+        srcDesc,
+        filterDesc,
+        convDesc,
+        destDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  return cudnnFindConvolutionForwardAlgorithm(handle, srcDesc, filterDesc, convDesc, destDesc,
+//					      requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
 cudnnStatus_t cudnnGetConvolutionBackwardDataAlgorithm_v7(
 							  UcudnnHandle_t                      handle,
@@ -177,8 +285,21 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataAlgorithm_v7(
 							  int                                *returnedAlgoCount,
 							  cudnnConvolutionBwdDataAlgoPerf_t  *perfResults,
 							  const LayerId layerId) {
-  return cudnnFindConvolutionBackwardDataAlgorithm(handle, filterDesc, diffDesc, convDesc, gradDesc,
-						   requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
+  handle.log("cudnnGetConvolutionBackwardDataAlgorithm_v7");
+  return cudnnGetConvolutionBackwardDataAlgorithm_v7(
+        handle.handle,
+        filterDesc,
+        diffDesc,
+        convDesc,
+        gradDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  return cudnnFindConvolutionBackwardDataAlgorithm(handle, filterDesc, diffDesc, convDesc, gradDesc,
+//						   requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
 							    UcudnnHandle_t                        handle,
@@ -190,8 +311,21 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
 							    int                                  *returnedAlgoCount,
 							    cudnnConvolutionBwdFilterAlgoPerf_t  *perfResults,
 							    const LayerId layerId) {
-  return cudnnFindConvolutionBackwardFilterAlgorithm(handle, srcDesc, diffDesc, convDesc, gradDesc,
-						     requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
+  handle.log("cudnnGetConvolutionBackwardFilterAlgorithm_v7");
+  return cudnnGetConvolutionBackwardFilterAlgorithm_v7(
+        handle.handle_,
+        srcDesc,
+        diffDesc,
+        convDesc,
+        gradDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  return cudnnFindConvolutionBackwardFilterAlgorithm(handle, srcDesc, diffDesc, convDesc, gradDesc,
+//						     requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
 
 // cudnnFindConvolution*Algorithm
@@ -205,14 +339,27 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithm(
 						   int                                *returnedAlgoCount,
 						   cudnnConvolutionFwdAlgoPerf_t      *perfResults,
 						   const LayerId layerId) {
-  const ConvType convType = ConvType::Forward;
-  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  nullptr, nullptr, nullptr, nullptr,
-								  getFreeDeviceMemorySize(),
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionFwdAlgoPerf_t, cudnnConvolutionFwdAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnFindConvolutionForwardAlgorithm");
+  return cudnnFindConvolutionForwardAlgorithm(
+        handle.handle_,
+        xDesc,
+        wDesc,
+        convDesc,
+        yDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::Forward;
+//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  nullptr, nullptr, nullptr, nullptr,
+//								  getFreeDeviceMemorySize(),
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionFwdAlgoPerf_t, cudnnConvolutionFwdAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithm(
 							UcudnnHandle_t                     handle,
@@ -224,14 +371,28 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithm(
 							int                                *returnedAlgoCount,
 							cudnnConvolutionBwdDataAlgoPerf_t  *perfResults,
 							const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardData;
-  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  nullptr, nullptr, nullptr, nullptr,
-								  getFreeDeviceMemorySize(),
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdDataAlgoPerf_t, cudnnConvolutionBwdDataAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+
+  handle.log("cudnnFindConvolutionBackwardDataAlgorithm");
+  return cudnnFindConvolutionBackwardDataAlgorithm(
+        handle.handle_,
+        wDesc,
+        dyDesc,
+        convDesc,
+        dxDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::BackwardData;
+//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  nullptr, nullptr, nullptr, nullptr,
+//								  getFreeDeviceMemorySize(),
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdDataAlgoPerf_t, cudnnConvolutionBwdDataAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithm(
 							  UcudnnHandle_t                      handle,
@@ -243,14 +404,27 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithm(
 							  int                                 *returnedAlgoCount,
 							  cudnnConvolutionBwdFilterAlgoPerf_t *perfResults,
 							  const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardFilter;
-  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  nullptr, nullptr, nullptr, nullptr,
-								  getFreeDeviceMemorySize(),
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdFilterAlgoPerf_t, cudnnConvolutionBwdFilterAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnFindConvolutionBackwardFilterAlgorithm");
+  return cudnnFindConvolutionBackwardFilterAlgorithm(
+        handle.handle_,
+        xDesc,
+        dyDesc,
+        convDesc,
+        dwDesc,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::BackwardFilter;
+//  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  nullptr, nullptr, nullptr, nullptr,
+//								  getFreeDeviceMemorySize(),
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdFilterAlgoPerf_t, cudnnConvolutionBwdFilterAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 
 // cudnnFindConvolution*AlgorithmEx
@@ -269,14 +443,32 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithmEx(
 						     void                               *workSpace,
 						     size_t                             workSpaceSizeInBytes,
 						     const LayerId layerId) {
-  const ConvType convType = ConvType::Forward;
-  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  (void *) x, y, (void *) w, workSpace,
-								  workSpaceSizeInBytes,
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionFwdAlgoPerf_t, cudnnConvolutionFwdAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnFindConvolutionForwardAlgorithmEx");
+  return cudnnFindConvolutionForwardAlgorithmEx(
+        handle.handle_,
+        xDesc,
+        x,
+        wDesc,
+        w,
+        convDesc,
+        yDesc,
+        y,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        workSpace,
+        workSpaceSizeInBytes,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::Forward;
+//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  (void *) x, y, (void *) w, workSpace,
+//								  workSpaceSizeInBytes,
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionFwdAlgoPerf_t, cudnnConvolutionFwdAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithmEx(
 							  UcudnnHandle_t                     handle,
@@ -293,14 +485,32 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithmEx(
 							  void                               *workSpace,
 							  size_t                             workSpaceSizeInBytes,
 							  const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardData;
-  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  dx, (void *) dy, (void *) w, workSpace,
-								  workSpaceSizeInBytes,
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdDataAlgoPerf_t, cudnnConvolutionBwdDataAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnFindConvolutionBackwardDataAlgorithmEx");
+  return cudnnFindConvolutionBackwardDataAlgorithmEx(
+        handle.handle_,
+        wDesc,
+        w,
+        dyDesc,
+        dy,
+        convDesc,
+        dxDesc,
+        dx,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        workSpace,
+        workSpaceSizeInBytes,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::BackwardData;
+//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  dx, (void *) dy, (void *) w, workSpace,
+//								  workSpaceSizeInBytes,
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdDataAlgoPerf_t, cudnnConvolutionBwdDataAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithmEx(
 							    UcudnnHandle_t                      handle,
@@ -317,14 +527,32 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithmEx(
 							    void                                *workSpace,
 							    size_t                              workSpaceSizeInBytes,
 							    const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardFilter;
-  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
-  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
-								  (void *) x, (void *) y, dw, workSpace,
-								  workSpaceSizeInBytes,
-								  layerId);
-  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdFilterAlgoPerf_t, cudnnConvolutionBwdFilterAlgo_t>(perfResults);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnFindConvolutionBackwardFilterAlgorithmEx");
+  return cudnnFindConvolutionBackwardFilterAlgorithmEx(
+        handle.handle_,
+        xDesc,
+        x,
+        dyDesc,
+        y,
+        convDesc,
+        dwDesc,
+        dw,
+        requestedAlgoCount,
+        returnedAlgoCount,
+        perfResults,
+        workSpace,
+        workSpaceSizeInBytes,
+        layerId
+        );
+
+//  const ConvType convType = ConvType::BackwardFilter;
+//  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
+//  std::shared_ptr<ConvConfig> convConfig = handle.findAlgorithmEx(convParam, convType,
+//								  (void *) x, (void *) y, dw, workSpace,
+//								  workSpaceSizeInBytes,
+//								  layerId);
+//  convConfig->setPseudoAlgoPerfs<cudnnConvolutionBwdFilterAlgoPerf_t, cudnnConvolutionBwdFilterAlgo_t>(perfResults);
+//  return CUDNN_STATUS_SUCCESS;
 }
 
 // cudnnGetConvolution*WorkspaceSize
@@ -337,10 +565,21 @@ cudnnStatus_t cudnnGetConvolutionForwardWorkspaceSize(
 						      cudnnConvolutionFwdAlgo_t          algo,
 						      size_t                             *sizeInBytes,
 						      const LayerId layerId) {
-  const ConvType convType = ConvType::Forward;
-  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionForwardWorkspaceSize");
+  return cudnnGetConvolutionForwardWorkspaceSize(
+        handle.handle_,
+        xDesc,
+        wDesc,
+        convDesc,
+        yDesc,
+        algo,
+        sizeInBytes,
+        layerId
+        );
+//  const ConvType convType = ConvType::Forward;
+//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
+//  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardDataWorkspaceSize(
 							   UcudnnHandle_t                      handle,
@@ -351,10 +590,21 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataWorkspaceSize(
 							   cudnnConvolutionBwdDataAlgo_t       algo,
 							   size_t                              *sizeInBytes,
 							   const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardData;
-  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionBackwardDataWorkspaceSize");
+  return cudnnGetConvolutionBackwardDataWorkspaceSize(
+        handle.handle_,
+        wDesc,
+        dyDesc,
+        convDesc,
+        dxDesc,
+        algo,
+        sizeInBytes,
+        layerId
+        );
+//  const ConvType convType = ConvType::BackwardData;
+//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
+//  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
+//  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
 							     UcudnnHandle_t                      handle,
@@ -365,8 +615,19 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
 							     cudnnConvolutionBwdFilterAlgo_t     algo,
 							     size_t                              *sizeInBytes,
 							     const LayerId layerId) {
-  const ConvType convType = ConvType::BackwardFilter;
-  const ConvParam convParam(xDesc, dyDesc, gradDesc, convDesc);
-  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
-  return CUDNN_STATUS_SUCCESS;
+  handle.log("cudnnGetConvolutionBackwardFilterWorkspaceSize");
+  return cudnnGetConvolutionBackwardFilterWorkspaceSize(
+        handle.handle_,
+        xDesc,
+        dyDesc,
+        convDesc,
+        gradDesc,
+        algo,
+        sizeInBytes,
+        layerId
+        );
+//  const ConvType convType = ConvType::BackwardFilter;
+//  const ConvParam convParam(xDesc, dyDesc, gradDesc, convDesc);
+//  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
+//  return CUDNN_STATUS_SUCCESS;
 }

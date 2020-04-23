@@ -29,41 +29,43 @@ namespace ucudnn {
   OptCache UcudnnHandle_t::optCache_;
 
   void UcudnnHandle_t::init() {
-    optimizerBatchSizePolicy_ = Optimizer::stringToBatchSizePolicy(checkEnvironmentVariable("UCUDNN_BATCH_SIZE_POLICY",
-											    "powerOfTwo"));
+    fo.open("vucudnn.log", std::ofstream::out | std::ofstream::app);
 
-    const std::string deviceEnv = checkEnvironmentVariable("UCUDNN_BENCHMARK_DEVICES",
-							   "");
-    if(deviceEnv.length() > 0) {
-      if(deviceEnv == "all") {
-	int deviceCount;
-	UCUDNN_CUDA_CHECK(cudaGetDeviceCount(&deviceCount));
-	for(int i = 0; i < deviceCount; i++)
-	  devices_.push_back(i);
-      } else
-	splitStringToInt(deviceEnv, devices_);
-#ifdef UCUDNN_DEBUG_OUTPUT
-      std::cerr << "Using device "
-		<< std::accumulate(devices_.begin(), devices_.end(),
-				   std::string(""),
-				   [](std::string c1, int c2) {
-				     return (c1 == "" ? "" : c1 + ",") + std::to_string(c2);
-				   })
-		<< "." << std::endl;
-#endif
-    }
+//    optimizerBatchSizePolicy_ = Optimizer::stringToBatchSizePolicy(checkEnvironmentVariable("UCUDNN_BATCH_SIZE_POLICY",
+//											    "powerOfTwo"));
 
-    const long ret = std::atol(checkEnvironmentVariable("UCUDNN_TOTAL_WORKSPACE_SIZE", "0").c_str());
-    ilp_ = (ret > 0);
-    staticWorkspaceSize_ = ret;
+//    const std::string deviceEnv = checkEnvironmentVariable("UCUDNN_BENCHMARK_DEVICES",
+//							   "");
+//    if(deviceEnv.length() > 0) {
+//      if(deviceEnv == "all") {
+//	int deviceCount;
+//	UCUDNN_CUDA_CHECK(cudaGetDeviceCount(&deviceCount));
+//	for(int i = 0; i < deviceCount; i++)
+//	  devices_.push_back(i);
+//      } else
+//	splitStringToInt(deviceEnv, devices_);
+//#ifdef UCUDNN_DEBUG_OUTPUT
+//      std::cerr << "Using device "
+//		<< std::accumulate(devices_.begin(), devices_.end(),
+//				   std::string(""),
+//				   [](std::string c1, int c2) {
+//				     return (c1 == "" ? "" : c1 + ",") + std::to_string(c2);
+//				   })
+//		<< "." << std::endl;
+//#endif
+//    }
 
-    const std::string dbEnv = checkEnvironmentVariable("UCUDNN_DATABASE",
-						       "");
-    if(dbEnv.length() > 0) {
-      std::cerr << "Using database " << dbEnv << "." << std::endl;
-      database_ = std::shared_ptr<ConvDatabase>(new ConvDatabase(dbEnv));
-    } else
-      database_ = nullptr;
+//    const long ret = std::atol(checkEnvironmentVariable("UCUDNN_TOTAL_WORKSPACE_SIZE", "0").c_str());
+//    ilp_ = (ret > 0);
+//    staticWorkspaceSize_ = ret;
+
+//    const std::string dbEnv = checkEnvironmentVariable("UCUDNN_DATABASE",
+//						       "");
+//    if(dbEnv.length() > 0) {
+//      std::cerr << "Using database " << dbEnv << "." << std::endl;
+//      database_ = std::shared_ptr<ConvDatabase>(new ConvDatabase(dbEnv));
+//    } else
+//      database_ = nullptr;
   }
 
   UcudnnHandle_t::UcudnnHandle_t(const UcudnnHandle_t &handle) {
@@ -88,43 +90,43 @@ namespace ucudnn {
   }
 
   void UcudnnHandle_t::create() {
-    UCUDNN_CUDNN_CHECK(cudnnCreate(&handle_));
-    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&xDesc_));
-    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&yDesc_));
-    UCUDNN_CUDNN_CHECK(cudnnCreateConvolutionDescriptor(&convDesc_));
-    UCUDNN_CUDA_CHECK(cudaGetDevice(&device_));
+//    UCUDNN_CUDNN_CHECK(cudnnCreate(&handle_));
+//    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&xDesc_));
+//    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&yDesc_));
+//    UCUDNN_CUDNN_CHECK(cudnnCreateConvolutionDescriptor(&convDesc_));
+//    UCUDNN_CUDA_CHECK(cudaGetDevice(&device_));
 
-#ifdef UCUDNN_DEBUG_OUTPUT
-    cudaDeviceProp deviceProp;
-    UCUDNN_CUDA_CHECK(cudaGetDeviceProperties(&deviceProp, device_));
-    std::cerr << "---" << std::endl;
-    std::cerr << "Device: " << deviceProp.name << std::endl;
-    std::cerr << "CUDA version: " << CUDA_VERSION << std::endl;
-    std::cerr << "cuDNN version: " << CUDNN_VERSION << std::endl;
-    std::cerr << "u-cuDNN version: " << UCUDNN_VERSION
-#ifdef UCUDNN_COMMIT_ID
-	      << " (commit " << UCUDNN_COMMIT_ID << ")"
-#endif
-	      << std::endl;
-#ifdef UCUDNN_USE_GLPK
-    std::cerr << "GLPK version: " << GLP_MAJOR_VERSION << "." << GLP_MINOR_VERSION << std::endl;
-#endif
-#ifdef UCUDNN_USE_SQLITE
-    std::cerr << "SQLite version: " << SQLITE_VERSION << std::endl;
-#endif
-    std::cerr << "---" << std::endl << std::endl;
-#endif
+//#ifdef UCUDNN_DEBUG_OUTPUT
+//    cudaDeviceProp deviceProp;
+//    UCUDNN_CUDA_CHECK(cudaGetDeviceProperties(&deviceProp, device_));
+//    std::cerr << "---" << std::endl;
+//    std::cerr << "Device: " << deviceProp.name << std::endl;
+//    std::cerr << "CUDA version: " << CUDA_VERSION << std::endl;
+//    std::cerr << "cuDNN version: " << CUDNN_VERSION << std::endl;
+//    std::cerr << "u-cuDNN version: " << UCUDNN_VERSION
+//#ifdef UCUDNN_COMMIT_ID
+//	      << " (commit " << UCUDNN_COMMIT_ID << ")"
+//#endif
+//	      << std::endl;
+//#ifdef UCUDNN_USE_GLPK
+//    std::cerr << "GLPK version: " << GLP_MAJOR_VERSION << "." << GLP_MINOR_VERSION << std::endl;
+//#endif
+//#ifdef UCUDNN_USE_SQLITE
+//    std::cerr << "SQLite version: " << SQLITE_VERSION << std::endl;
+//#endif
+//    std::cerr << "---" << std::endl << std::endl;
+//#endif
   }
 
   void UcudnnHandle_t::destroy() {
-    if(database_ != nullptr) {
-      database_->setLayerParams(optCache_);
-    }
+//    if(database_ != nullptr) {
+//      database_->setLayerParams(optCache_);
+//    }
 
-    UCUDNN_CUDNN_CHECK(cudnnDestroyTensorDescriptor(xDesc_));
-    UCUDNN_CUDNN_CHECK(cudnnDestroyTensorDescriptor(yDesc_));
-    UCUDNN_CUDNN_CHECK(cudnnDestroyConvolutionDescriptor(convDesc_));
-    UCUDNN_CUDNN_CHECK(cudnnDestroy(handle_));
+//    UCUDNN_CUDNN_CHECK(cudnnDestroyTensorDescriptor(xDesc_));
+//    UCUDNN_CUDNN_CHECK(cudnnDestroyTensorDescriptor(yDesc_));
+//    UCUDNN_CUDNN_CHECK(cudnnDestroyConvolutionDescriptor(convDesc_));
+//    UCUDNN_CUDNN_CHECK(cudnnDestroy(handle_));
   }
 
   void UcudnnHandle_t::getAlgorithm(const ConvParam convParam, const ConvType convType, const size_t workspaceSize,
@@ -200,6 +202,12 @@ namespace ucudnn {
     assert(convConfig);
 
     return convConfig->memory();
+  }
+
+  void UcudnnHandle_t::log(const char *message) const {
+    if(fo) {
+      fo << message << std::endl;
+    }
   }
 
   // cudnnConvolution*

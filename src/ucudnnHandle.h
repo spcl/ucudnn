@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #include <cudnn.h>
+#include <iostream>
 
 #include "convParam.h"
 #include "optimizer.h"
@@ -56,10 +57,13 @@ namespace ucudnn {
 						const size_t workspaceSize, const LayerId layerId);
     size_t getWorkspaceSize(const ConvParam convParam, const ConvType convType, const LayerId layerId);
 
+    void log(const char * message) const;
+
+    cudnnHandle_t handle_;
+
   private:
     void init();
 
-    cudnnHandle_t handle_;
     cudnnTensorDescriptor_t xDesc_, yDesc_;
     cudnnConvolutionDescriptor_t convDesc_;
     BatchSizePolicy optimizerBatchSizePolicy_;
@@ -72,6 +76,9 @@ namespace ucudnn {
     std::shared_ptr<ConvDatabase> database_;
 
     static OptCache optCache_;
+
+    // log file
+    std::ofstream fo;
   };
 
 }
