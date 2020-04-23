@@ -7,7 +7,7 @@
 #include "optCache.h"
 #include "ilpOptimizer.h"
 
-namespace ucudnn {
+namespace vcudnn {
   void OptCache::setConvConfig(const ConvParam convParam,
 			       const ConvType convType,
 			       const LayerId layerId,

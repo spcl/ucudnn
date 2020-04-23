@@ -18,7 +18,7 @@
 #include "optimizer.h"
 #include "desirableSet.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   /// --- public static ---
 

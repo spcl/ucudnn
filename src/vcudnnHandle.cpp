@@ -27,11 +27,11 @@
 #include "util.h"
 #include "safeWorkspace.h"
 
-namespace ucudnn {
-  OptCache UcudnnHandle_t::optCache_;
+namespace vcudnn {
+  OptCache VcudnnHandle_t::optCache_;
 
-  void UcudnnHandle_t::init() {
-    fo.open("vucudnn.log", std::ofstream::out | std::ofstream::app);
+  void VcudnnHandle_t::init() {
+    fo.open("vcudnn.log", std::ofstream::out | std::ofstream::app);
 
 //    optimizerBatchSizePolicy_ = Optimizer::stringToBatchSizePolicy(checkEnvironmentVariable("UCUDNN_BATCH_SIZE_POLICY",
 //											    "powerOfTwo"));
@@ -70,7 +70,7 @@ namespace ucudnn {
 //      database_ = nullptr;
   }
 
-  UcudnnHandle_t::UcudnnHandle_t(const UcudnnHandle_t &handle) {
+  VcudnnHandle_t::VcudnnHandle_t(const VcudnnHandle_t &handle) {
     // According to "2.4. Thread Safety" of cuDNN documentation,
     // the cuDNN handle can be copied as long as multiple cuDNN functions are called simultaneously.
     // So we can simply copy the internal handle and discriptors.
@@ -88,10 +88,10 @@ namespace ucudnn {
     database_ = handle.database_;
   }
 
-  UcudnnHandle_t::~UcudnnHandle_t() {
+  VcudnnHandle_t::~VcudnnHandle_t() {
   }
 
-  void UcudnnHandle_t::create() {
+  void VcudnnHandle_t::create() {
 //    UCUDNN_CUDNN_CHECK(cudnnCreate(&handle_));
 //    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&xDesc_));
 //    UCUDNN_CUDNN_CHECK(cudnnCreateTensorDescriptor(&yDesc_));
@@ -120,7 +120,7 @@ namespace ucudnn {
 //#endif
   }
 
-  void UcudnnHandle_t::destroy() {
+  void VcudnnHandle_t::destroy() {
 //    if(database_ != nullptr) {
 //      database_->setLayerParams(optCache_);
 //    }
@@ -131,7 +131,7 @@ namespace ucudnn {
 //    UCUDNN_CUDNN_CHECK(cudnnDestroy(handle_));
   }
 
-  void UcudnnHandle_t::getAlgorithm(const ConvParam convParam, const ConvType convType, const size_t workspaceSize,
+  void VcudnnHandle_t::getAlgorithm(const ConvParam convParam, const ConvType convType, const size_t workspaceSize,
 				    const LayerId layerId) {
     findAlgorithmEx(convParam, convType,
 		    nullptr, nullptr, nullptr, nullptr,
@@ -139,7 +139,7 @@ namespace ucudnn {
 		    layerId);
   }
 
-  std::shared_ptr<ConvConfig> UcudnnHandle_t::findAlgorithmEx(const ConvParam convParam, const ConvType convType,
+  std::shared_ptr<ConvConfig> VcudnnHandle_t::findAlgorithmEx(const ConvParam convParam, const ConvType convType,
 							      void *x, void *y, void *w, void *workspace,
 							      const size_t workspaceSize,
 							      const LayerId layerId) {
@@ -177,7 +177,7 @@ namespace ucudnn {
     return convConfig;
   }
 
-  size_t UcudnnHandle_t::getWorkspaceSize(const ConvParam convParam, const ConvType convType,
+  size_t VcudnnHandle_t::getWorkspaceSize(const ConvParam convParam, const ConvType convType,
 					  const LayerId layerId) {
     if(ilp_)
       return 0;
@@ -206,7 +206,7 @@ namespace ucudnn {
     return convConfig->memory();
   }
 
-  void UcudnnHandle_t::log(const std::string message) {
+  void VcudnnHandle_t::log(const std::string message) {
     if(fo) {
       fo << message << std::endl;
       //std::cout << message << std::endl;
@@ -214,7 +214,7 @@ namespace ucudnn {
   }
 
   // cudnnConvolution*
-  cudnnStatus_t UcudnnHandle_t::convolution(const ConvParam convParam, const ConvType convType,
+  cudnnStatus_t VcudnnHandle_t::convolution(const ConvParam convParam, const ConvType convType,
 					    const cudnnFilterDescriptor_t wDesc,
 					    const cudnnConvolutionDescriptor_t convDesc,
 					    void *x, void *y, void *w, void *workspace,
@@ -256,22 +256,22 @@ namespace ucudnn {
     convParam.setYDesc(yDesc_, convParam.getDefaultBatchSize());
 
     size_t outSize;
-    void *ucudnnOut, *trueOut;
+    void *vcudnnOut, *trueOut;
     cudnnDataType_t outDataType;
     switch(convType) {
     case Forward:
       outSize = getAccessibleTensorSizeInBytes(yDesc_);
-      ucudnnOut = y;
+      vcudnnOut = y;
       outDataType = convParam.getYDataType();
       break;
     case BackwardData:
       outSize = getAccessibleTensorSizeInBytes(xDesc_);
-      ucudnnOut = x;
+      vcudnnOut = x;
       outDataType = convParam.getXDataType();
       break;
     case BackwardFilter:
       outSize = getFilterSizeInBytes(wDesc);
-      ucudnnOut = w;
+      vcudnnOut = w;
       outDataType = convParam.getWDataType();
       break;
     default:
@@ -281,7 +281,7 @@ namespace ucudnn {
     assert((outSize % getDataTypeSizeInBytes(outDataType)) == 0);
     const int outCount = outSize / getDataTypeSizeInBytes(outDataType);
     UCUDNN_CUDA_CHECK(cudaMalloc(&trueOut, outSize));
-    UCUDNN_CUDA_CHECK(cudaMemcpy(trueOut, ucudnnOut, outSize, cudaMemcpyDeviceToDevice));
+    UCUDNN_CUDA_CHECK(cudaMemcpy(trueOut, vcudnnOut, outSize, cudaMemcpyDeviceToDevice));
 
     UCUDNN_CUDNN_CHECK(cudnnConvolutionGeneric(handle_,
 					       xDesc_, yDesc_, wDesc, convDesc,
@@ -327,7 +327,7 @@ namespace ucudnn {
 
 #ifdef UCUDNN_DEBUG_EQUIVALENCE_TEST
     const float l2nrm = getL2Norm((float *) trueOut, outCount);
-    const float l2dist = getL2Distance((float *) ucudnnOut, (float *) trueOut, outCount);
+    const float l2dist = getL2Distance((float *) vcudnnOut, (float *) trueOut, outCount);
     std::cerr << "Convolution equivalence test (" << convTypeToString(convType)
 	      << ", " << convParam.toString() << "):" << std::endl
 

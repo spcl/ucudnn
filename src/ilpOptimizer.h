@@ -13,7 +13,7 @@
 #include "convParam.h"
 #include "optimizer.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   class ILPOptimizer {
   public:

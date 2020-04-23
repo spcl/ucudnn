@@ -7,7 +7,7 @@
 #include "desirableSet.h"
 #include "convConfig.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   template<typename ConfigType>
   bool DesirableSet<ConfigType>::insert(const std::shared_ptr<ConfigType> config) {

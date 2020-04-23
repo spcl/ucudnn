@@ -19,7 +19,7 @@
 
 #include "util.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   std::string convTypeToString(const ConvType convType);
 

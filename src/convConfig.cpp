@@ -6,6 +6,6 @@
 
 #include "convConfig.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
 }

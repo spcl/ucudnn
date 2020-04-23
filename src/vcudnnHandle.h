@@ -4,8 +4,8 @@
  * See LICENSE for license information.
  */
 
-#ifndef UCUDNN_UCUDNNHANDLE_H_
-#define UCUDNN_UCUDNNHANDLE_H_
+#ifndef VCUDNN_VCUDNNHANDLE_H_
+#define VCUDNN_VCUDNNHANDLE_H_
 
 #include <unordered_map>
 #include <cudnn.h>
@@ -19,19 +19,19 @@
 #include "util.h"
 #include "convDatabase.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
-  class UcudnnHandle_t {
+  class VcudnnHandle_t {
   public:
 
-    UcudnnHandle_t() { init(); };
+    VcudnnHandle_t() { init(); };
     // Some frameworks including NVIDIA Caffe initializes cudnnHandle_t as nullptr,
     // since cudnnHandle_t is alias type for a cudnnContext pointer.
-    // So UcudnnHandle_t have a dummy parameter to support such initialization.
+    // So VcudnnHandle_t have a dummy parameter to support such initialization.
     // ptr is totall ignored in the constructor.
-    UcudnnHandle_t(const void *ptr) { init(); }
-    UcudnnHandle_t(const UcudnnHandle_t &handle);
-    ~UcudnnHandle_t();
+    VcudnnHandle_t(const void *ptr) { init(); }
+    VcudnnHandle_t(const VcudnnHandle_t &handle);
+    ~VcudnnHandle_t();
 
     operator cudnnHandle_t() const { return handle_; }
     void allocateTensorDescriptors(const int size);
@@ -85,6 +85,6 @@ namespace ucudnn {
 
 }
 
-using ucudnn::UcudnnHandle_t;
+using vcudnn::VcudnnHandle_t;
 
 #endif

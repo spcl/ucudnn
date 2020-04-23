@@ -10,7 +10,7 @@
 #include <sqlite3.h>
 #endif
 
-namespace ucudnn {
+namespace vcudnn {
 
   const std::string ConvDatabase::cName_layerId = "layerId";
 

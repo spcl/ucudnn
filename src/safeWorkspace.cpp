@@ -7,7 +7,7 @@
 #include "safeWorkspace.h"
 #include "util.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   SafeWorkspace::SafeWorkspace(const size_t size) {
     UCUDNN_CUDA_CHECK(cudaMalloc(&ptr_, size));

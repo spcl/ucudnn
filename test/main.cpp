@@ -124,7 +124,7 @@ cudnnConvolutionFwdAlgo_t test(cudnnHandle_t cudnn, unsigned long workspaceSize,
     assert(false);
   }
 
-  UcudnnHandle_t handle;
+  VcudnnHandle_t handle;
   cudnnCheck(cudnnCreate(&handle));
 
   if(getAlgorithm)
@@ -133,25 +133,25 @@ cudnnConvolutionFwdAlgo_t test(cudnnHandle_t cudnn, unsigned long workspaceSize,
 						   CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
 						   workspaceSize,
 						   &algo,
-						   (ucudnn::LayerId) (unsigned long) id));
+						   (vcudnn::LayerId) (unsigned long) id));
 
   if(runConvolution) {
     void *x, *y, *w, *workspace;
 
-    cudaCheck(cudaMalloc(&x, ucudnn::getTensorSizeInBytes(xDesc)));
-    cudaCheck(cudaMalloc(&y, ucudnn::getTensorSizeInBytes(yDesc)));
-    cudaCheck(cudaMalloc(&w, ucudnn::getFilterSizeInBytes(wDesc)));
+    cudaCheck(cudaMalloc(&x, vcudnn::getTensorSizeInBytes(xDesc)));
+    cudaCheck(cudaMalloc(&y, vcudnn::getTensorSizeInBytes(yDesc)));
+    cudaCheck(cudaMalloc(&w, vcudnn::getFilterSizeInBytes(wDesc)));
     cudaCheck(cudaMalloc(&workspace, workspaceSize));
 
     if(dataType == CUDNN_DATA_FLOAT) {
-      fillNormal((float *) x, ucudnn::getTensorSizeInBytes(xDesc) / sizeof(float));
-      fillNormal((float *) y, ucudnn::getTensorSizeInBytes(yDesc) / sizeof(float));
-      fillNormal((float *) w, ucudnn::getFilterSizeInBytes(wDesc) / sizeof(float));
+      fillNormal((float *) x, vcudnn::getTensorSizeInBytes(xDesc) / sizeof(float));
+      fillNormal((float *) y, vcudnn::getTensorSizeInBytes(yDesc) / sizeof(float));
+      fillNormal((float *) w, vcudnn::getFilterSizeInBytes(wDesc) / sizeof(float));
     } else {
       // TODO: set proper random values in half format
-      cudaCheck(cudaMemset(x, 1, ucudnn::getTensorSizeInBytes(xDesc)));
-      cudaCheck(cudaMemset(y, 2, ucudnn::getTensorSizeInBytes(yDesc)));
-      cudaCheck(cudaMemset(w, 3, ucudnn::getFilterSizeInBytes(wDesc)));
+      cudaCheck(cudaMemset(x, 1, vcudnn::getTensorSizeInBytes(xDesc)));
+      cudaCheck(cudaMemset(y, 2, vcudnn::getTensorSizeInBytes(yDesc)));
+      cudaCheck(cudaMemset(w, 3, vcudnn::getFilterSizeInBytes(wDesc)));
       cudaCheck(cudaMemset(workspace, 4, workspaceSize));
     }
 
@@ -168,7 +168,7 @@ cudnnConvolutionFwdAlgo_t test(cudnnHandle_t cudnn, unsigned long workspaceSize,
 				       workspaceSize,
 				       &beta,
 				       yDesc, y,
-				       (ucudnn::LayerId) (unsigned long) id));
+				       (vcudnn::LayerId) (unsigned long) id));
 
     cudaCheck(cudaFree(x));
     cudaCheck(cudaFree(y));
@@ -219,9 +219,9 @@ int main(int argc, char **argv) {
 	    << ", isHalf: " << isHalf
 	    << ", isTensorOp: " << isTensorOp
 	    << ", bench CSV file: " << benchCSV
-	    << ", xFormat: " << ucudnn::getTensorFormatName(xFormat)
-	    << ", yFormat: " << ucudnn::getTensorFormatName(yFormat)
-	    << ", wFormat: " << ucudnn::getTensorFormatName(wFormat)
+	    << ", xFormat: " << vcudnn::getTensorFormatName(xFormat)
+	    << ", yFormat: " << vcudnn::getTensorFormatName(yFormat)
+	    << ", wFormat: " << vcudnn::getTensorFormatName(wFormat)
 	    << std::endl;
 
   cudnnHandle_t cudnn;

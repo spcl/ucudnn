@@ -16,7 +16,7 @@
 #include "convParam.h"
 #include "convDatabase.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   typedef struct {
     void *x, *y, *w, *workspace;

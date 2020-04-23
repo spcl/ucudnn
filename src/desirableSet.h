@@ -13,7 +13,7 @@
 
 #include "convConfig.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   template<typename ConfigType>
   struct compare_with_time {

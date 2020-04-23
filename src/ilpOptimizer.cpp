@@ -13,7 +13,7 @@
 #include "ilpOptimizer.h"
 #include "util.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   std::vector<std::shared_ptr<ConvConfig> > ILPOptimizer::optimize(const size_t workspaceSize,
 								   const BatchSizePolicy batchSizePolicy,

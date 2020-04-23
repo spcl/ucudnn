@@ -18,7 +18,7 @@
 // This constant is only used when frameworks try to get workspace size without providing workspace limit
 #define UCUDNN_DEFAULT_WORKSPACE_LIMIT (64UL * 1024 * 1024)
 
-namespace ucudnn {
+namespace vcudnn {
   typedef long LayerId;
   static const LayerId LayerIdAny = -1L; // TODO: avoid hash collision
   LayerId stringToLayerId(const std::string s);

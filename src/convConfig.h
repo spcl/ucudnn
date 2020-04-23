@@ -19,7 +19,7 @@
 
 #include "kernelConfig.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   // a set of configurations to execute specific type of a convolution layer
   class ConvConfig {

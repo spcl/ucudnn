@@ -6,7 +6,7 @@
 
 #include "kernelConfig.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   std::string convTypeToString(const ConvType convType) {
     switch(convType) {

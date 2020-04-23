@@ -15,20 +15,20 @@
 #include "vcudnn.h"
 #include "vcudnnHandle.h"
 
-using ucudnn::ConvType;
-using ucudnn::ConvParam;
-using ucudnn::ConvConfig;
-using ucudnn::getFreeDeviceMemorySize;
-using ucudnn::LayerId;
+using vcudnn::ConvType;
+using vcudnn::ConvParam;
+using vcudnn::ConvConfig;
+using vcudnn::getFreeDeviceMemorySize;
+using vcudnn::LayerId;
 
-cudnnStatus_t cudnnCreate(UcudnnHandle_t *handle) {
+cudnnStatus_t cudnnCreate(VcudnnHandle_t *handle) {
   return cudnnCreate(& handle->handle_);
 
 //  handle->create();
 //  return CUDNN_STATUS_SUCCESS;
 }
 
-cudnnStatus_t cudnnDestroy(UcudnnHandle_t handle) {
+cudnnStatus_t cudnnDestroy(VcudnnHandle_t handle) {
   return cudnnDestroy(handle.handle_);
 
 //  handle.destroy();
@@ -37,7 +37,7 @@ cudnnStatus_t cudnnDestroy(UcudnnHandle_t handle) {
 
 // cudnnConvolution*
 cudnnStatus_t cudnnConvolutionForward(
-				      UcudnnHandle_t                     handle,
+				      VcudnnHandle_t                     handle,
 				      const void                         *alpha,
 				      const cudnnTensorDescriptor_t      xDesc,
 				      const void                         *x,
@@ -67,8 +67,7 @@ cudnnStatus_t cudnnConvolutionForward(
         workSpaceSizeInBytes,
         beta,
         yDesc,
-        y,
-        layerId
+        y
         );
 
 //  const ConvType convType = ConvType::Forward;
@@ -80,7 +79,7 @@ cudnnStatus_t cudnnConvolutionForward(
 //			    layerId);
 }
 cudnnStatus_t cudnnConvolutionBackwardData(
-					   UcudnnHandle_t                     handle,
+					   VcudnnHandle_t                     handle,
 					   const void                         *alpha,
 					   const cudnnFilterDescriptor_t      wDesc,
 					   const void                         *w,
@@ -108,8 +107,7 @@ cudnnStatus_t cudnnConvolutionBackwardData(
         workSpaceSizeInBytes,
         beta,
         dxDesc,
-        dx,
-        layerId
+        dx
   );
 //  const ConvType convType = ConvType::BackwardData;
 //  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
@@ -120,7 +118,7 @@ cudnnStatus_t cudnnConvolutionBackwardData(
 //			    layerId);
 }
 cudnnStatus_t cudnnConvolutionBackwardFilter(
-					     UcudnnHandle_t                     handle,
+					     VcudnnHandle_t                     handle,
 					     const void                         *alpha,
 					     const cudnnTensorDescriptor_t      xDesc,
 					     const void                         *x,
@@ -148,8 +146,7 @@ cudnnStatus_t cudnnConvolutionBackwardFilter(
         workSpaceSizeInBytes,
         beta,
         dwDesc,
-        dw,
-        layerId
+        dw
   );
 
 //  const ConvType convType = ConvType::BackwardFilter;
@@ -163,7 +160,7 @@ cudnnStatus_t cudnnConvolutionBackwardFilter(
 
 // cudnnGetConvolution*Algorithm
 cudnnStatus_t cudnnGetConvolutionForwardAlgorithm(
-						  UcudnnHandle_t                     handle,
+						  VcudnnHandle_t                     handle,
 						  const cudnnTensorDescriptor_t      xDesc,
 						  const cudnnFilterDescriptor_t      wDesc,
 						  const cudnnConvolutionDescriptor_t convDesc,
@@ -181,8 +178,7 @@ cudnnStatus_t cudnnGetConvolutionForwardAlgorithm(
         yDesc,
         preference,
         memoryLimitInBytes,
-        algo,
-        layerId
+        algo
         );
 //  const ConvType convType = ConvType::Forward;
 //  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
@@ -191,7 +187,7 @@ cudnnStatus_t cudnnGetConvolutionForwardAlgorithm(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t  cudnnGetConvolutionBackwardDataAlgorithm(
-							UcudnnHandle_t                      handle,
+							VcudnnHandle_t                      handle,
 							const cudnnFilterDescriptor_t       wDesc,
 							const cudnnTensorDescriptor_t       dyDesc,
 							const cudnnConvolutionDescriptor_t  convDesc,
@@ -209,8 +205,7 @@ cudnnStatus_t  cudnnGetConvolutionBackwardDataAlgorithm(
         dxDesc,
         preference,
         memoryLimitInBytes,
-        algo,
-        layerId
+        algo
         );
 //  const ConvType convType = ConvType::BackwardData;
 //  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
@@ -219,7 +214,7 @@ cudnnStatus_t  cudnnGetConvolutionBackwardDataAlgorithm(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm(
-							 UcudnnHandle_t                        handle,
+							 VcudnnHandle_t                        handle,
 							 const cudnnTensorDescriptor_t         xDesc,
 							 const cudnnTensorDescriptor_t         dyDesc,
 							 const cudnnConvolutionDescriptor_t    convDesc,
@@ -237,8 +232,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm(
         dwDesc,
         preference,
         memoryLimitInBytes,
-        algo,
-        layerId
+        algo
   );
 //  const ConvType convType = ConvType::BackwardFilter;
 //  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
@@ -250,7 +244,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm(
 
 // cudnnGetConvolution*Algorithm_v7
 cudnnStatus_t cudnnGetConvolutionForwardAlgorithm_v7(
-						     UcudnnHandle_t                     handle,
+						     VcudnnHandle_t                     handle,
 						     const cudnnTensorDescriptor_t      srcDesc,
 						     const cudnnFilterDescriptor_t      filterDesc,
 						     const cudnnConvolutionDescriptor_t convDesc,
@@ -268,15 +262,14 @@ cudnnStatus_t cudnnGetConvolutionForwardAlgorithm_v7(
         destDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  return cudnnFindConvolutionForwardAlgorithm(handle, srcDesc, filterDesc, convDesc, destDesc,
 //					      requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
 cudnnStatus_t cudnnGetConvolutionBackwardDataAlgorithm_v7(
-							  UcudnnHandle_t                      handle,
+							  VcudnnHandle_t                      handle,
 							  const cudnnFilterDescriptor_t       filterDesc,
 							  const cudnnTensorDescriptor_t       diffDesc,
 							  const cudnnConvolutionDescriptor_t  convDesc,
@@ -294,15 +287,14 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataAlgorithm_v7(
         gradDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  return cudnnFindConvolutionBackwardDataAlgorithm(handle, filterDesc, diffDesc, convDesc, gradDesc,
 //						   requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
-							    UcudnnHandle_t                        handle,
+							    VcudnnHandle_t                        handle,
 							    const cudnnTensorDescriptor_t         srcDesc,
 							    const cudnnTensorDescriptor_t         diffDesc,
 							    const cudnnConvolutionDescriptor_t    convDesc,
@@ -320,8 +312,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
         gradDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  return cudnnFindConvolutionBackwardFilterAlgorithm(handle, srcDesc, diffDesc, convDesc, gradDesc,
@@ -330,7 +321,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
 
 // cudnnFindConvolution*Algorithm
 cudnnStatus_t cudnnFindConvolutionForwardAlgorithm(
-						   UcudnnHandle_t                     handle,
+						   VcudnnHandle_t                     handle,
 						   const cudnnTensorDescriptor_t      xDesc,
 						   const cudnnFilterDescriptor_t      wDesc,
 						   const cudnnConvolutionDescriptor_t convDesc,
@@ -348,8 +339,7 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithm(
         yDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  const ConvType convType = ConvType::Forward;
@@ -362,7 +352,7 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithm(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithm(
-							UcudnnHandle_t                     handle,
+							VcudnnHandle_t                     handle,
 							const cudnnFilterDescriptor_t      wDesc,
 							const cudnnTensorDescriptor_t      dyDesc,
 							const cudnnConvolutionDescriptor_t convDesc,
@@ -381,8 +371,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithm(
         dxDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  const ConvType convType = ConvType::BackwardData;
@@ -395,7 +384,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithm(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithm(
-							  UcudnnHandle_t                      handle,
+							  VcudnnHandle_t                      handle,
 							  const cudnnTensorDescriptor_t       xDesc,
 							  const cudnnTensorDescriptor_t       dyDesc,
 							  const cudnnConvolutionDescriptor_t  convDesc,
@@ -413,8 +402,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithm(
         dwDesc,
         requestedAlgoCount,
         returnedAlgoCount,
-        perfResults,
-        layerId
+        perfResults
         );
 
 //  const ConvType convType = ConvType::BackwardFilter;
@@ -429,7 +417,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithm(
 
 // cudnnFindConvolution*AlgorithmEx
 cudnnStatus_t cudnnFindConvolutionForwardAlgorithmEx(
-						     UcudnnHandle_t                     handle,
+						     VcudnnHandle_t                     handle,
 						     const cudnnTensorDescriptor_t      xDesc,
 						     const void                         *x,
 						     const cudnnFilterDescriptor_t      wDesc,
@@ -457,8 +445,7 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithmEx(
         returnedAlgoCount,
         perfResults,
         workSpace,
-        workSpaceSizeInBytes,
-        layerId
+        workSpaceSizeInBytes
         );
 
 //  const ConvType convType = ConvType::Forward;
@@ -471,7 +458,7 @@ cudnnStatus_t cudnnFindConvolutionForwardAlgorithmEx(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithmEx(
-							  UcudnnHandle_t                     handle,
+							  VcudnnHandle_t                     handle,
 							  const cudnnFilterDescriptor_t      wDesc,
 							  const void                         *w,
 							  const cudnnTensorDescriptor_t      dyDesc,
@@ -499,8 +486,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithmEx(
         returnedAlgoCount,
         perfResults,
         workSpace,
-        workSpaceSizeInBytes,
-        layerId
+        workSpaceSizeInBytes
         );
 
 //  const ConvType convType = ConvType::BackwardData;
@@ -513,7 +499,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardDataAlgorithmEx(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithmEx(
-							    UcudnnHandle_t                      handle,
+							    VcudnnHandle_t                      handle,
 							    const cudnnTensorDescriptor_t       xDesc,
 							    const void                          *x,
 							    const cudnnTensorDescriptor_t       dyDesc,
@@ -541,8 +527,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithmEx(
         returnedAlgoCount,
         perfResults,
         workSpace,
-        workSpaceSizeInBytes,
-        layerId
+        workSpaceSizeInBytes
         );
 
 //  const ConvType convType = ConvType::BackwardFilter;
@@ -557,7 +542,7 @@ cudnnStatus_t cudnnFindConvolutionBackwardFilterAlgorithmEx(
 
 // cudnnGetConvolution*WorkspaceSize
 cudnnStatus_t cudnnGetConvolutionForwardWorkspaceSize(
-						      UcudnnHandle_t                     handle,
+						      VcudnnHandle_t                     handle,
 						      const cudnnTensorDescriptor_t      xDesc,
 						      const cudnnFilterDescriptor_t      wDesc,
 						      const cudnnConvolutionDescriptor_t convDesc,
@@ -573,8 +558,7 @@ cudnnStatus_t cudnnGetConvolutionForwardWorkspaceSize(
         convDesc,
         yDesc,
         algo,
-        sizeInBytes,
-        layerId
+        sizeInBytes
         );
 //  const ConvType convType = ConvType::Forward;
 //  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
@@ -582,7 +566,7 @@ cudnnStatus_t cudnnGetConvolutionForwardWorkspaceSize(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardDataWorkspaceSize(
-							   UcudnnHandle_t                      handle,
+							   VcudnnHandle_t                      handle,
 							   const cudnnFilterDescriptor_t       wDesc,
 							   const cudnnTensorDescriptor_t       dyDesc,
 							   const cudnnConvolutionDescriptor_t  convDesc,
@@ -598,8 +582,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataWorkspaceSize(
         convDesc,
         dxDesc,
         algo,
-        sizeInBytes,
-        layerId
+        sizeInBytes
         );
 //  const ConvType convType = ConvType::BackwardData;
 //  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
@@ -607,7 +590,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataWorkspaceSize(
 //  return CUDNN_STATUS_SUCCESS;
 }
 cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
-							     UcudnnHandle_t                      handle,
+							     VcudnnHandle_t                      handle,
 							     const cudnnTensorDescriptor_t       xDesc,
 							     const cudnnTensorDescriptor_t       dyDesc,
 							     const cudnnConvolutionDescriptor_t  convDesc,
@@ -623,8 +606,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
         convDesc,
         gradDesc,
         algo,
-        sizeInBytes,
-        layerId
+        sizeInBytes
         );
 //  const ConvType convType = ConvType::BackwardFilter;
 //  const ConvParam convParam(xDesc, dyDesc, gradDesc, convDesc);

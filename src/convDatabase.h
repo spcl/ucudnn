@@ -13,7 +13,7 @@
 #include "convParam.h"
 #include "optCache.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   enum DatabaseCellType {
     BOOL, INT, DOUBLE, STRING

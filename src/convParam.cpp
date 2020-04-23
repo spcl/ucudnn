@@ -11,7 +11,7 @@
 #include "convConfig.h"
 #include "convParam.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   void ConvParam::initialize(const cudnnTensorDescriptor_t xDesc,
 			     const cudnnTensorDescriptor_t yDesc,

@@ -13,7 +13,7 @@
 #include "convConfig.h"
 #include "util.h"
 
-namespace ucudnn {
+namespace vcudnn {
 
   class TensorStride {
   public:
@@ -209,8 +209,8 @@ private:
 
 namespace std {
   template <>
-  struct hash<ucudnn::ConvParam> {
-    size_t operator()(const ucudnn::ConvParam &convParam) const {
+  struct hash<vcudnn::ConvParam> {
+    size_t operator()(const vcudnn::ConvParam &convParam) const {
       return convParam.hash();
     }
   };

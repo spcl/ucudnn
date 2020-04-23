@@ -11,7 +11,7 @@
 
 #include "util.h"
 
-namespace ucudnn {
+namespace vcudnn {
   LayerId stringToLayerId(const std::string s) {
     return (LayerId) std::hash<std::string>{}(s);
   }

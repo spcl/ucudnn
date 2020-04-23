@@ -15,20 +15,20 @@
 #include "convParam.h"
 #include "safeWorkspace.h"
 
-namespace ucudnn {
+namespace vcudnn {
   typedef std::pair<LayerId, ConvType> OptCacheKey;
 }
 namespace std {
   template <>
-  struct hash<ucudnn::OptCacheKey> {
+  struct hash<vcudnn::OptCacheKey> {
   public:
-    size_t operator()(const ucudnn::OptCacheKey &key) const {
+    size_t operator()(const vcudnn::OptCacheKey &key) const {
       return (size_t) key.first + (size_t) key.second;
     }
   };
 };
 
-namespace ucudnn {
+namespace vcudnn {
 
   class OptCache {
   public:

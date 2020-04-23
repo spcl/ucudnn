@@ -13,7 +13,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-namespace ucudnn {
+namespace vcudnn {
 
   class SafeWorkspace {
   public:
