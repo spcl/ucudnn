@@ -22,7 +22,7 @@ using ucudnn::getFreeDeviceMemorySize;
 using ucudnn::LayerId;
 
 cudnnStatus_t cudnnCreate(UcudnnHandle_t *handle) {
-  return cudnnCreate(handle->handle_);
+  return cudnnCreate(& handle->handle_);
 
 //  handle->create();
 //  return CUDNN_STATUS_SUCCESS;
@@ -98,7 +98,7 @@ cudnnStatus_t cudnnConvolutionBackwardData(
   return cudnnConvolutionBackwardData(
         handle.handle_,
         alpha,
-        wdesc,
+        wDesc,
         w,
         dyDesc,
         dy,
@@ -287,7 +287,7 @@ cudnnStatus_t cudnnGetConvolutionBackwardDataAlgorithm_v7(
 							  const LayerId layerId) {
   handle.log("cudnnGetConvolutionBackwardDataAlgorithm_v7");
   return cudnnGetConvolutionBackwardDataAlgorithm_v7(
-        handle.handle,
+        handle.handle_,
         filterDesc,
         diffDesc,
         convDesc,

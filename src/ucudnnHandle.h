@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <cudnn.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "convParam.h"
 #include "optimizer.h"
@@ -57,7 +59,7 @@ namespace ucudnn {
 						const size_t workspaceSize, const LayerId layerId);
     size_t getWorkspaceSize(const ConvParam convParam, const ConvType convType, const LayerId layerId);
 
-    void log(const char * message) const;
+    void log(const std::string message);
 
     cudnnHandle_t handle_;
 

@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <assert.h>
 #include <stdint.h>
+#include <fstream>
+#include <string>
 
 #include <cudnn.h>
 #ifdef UCUDNN_USE_GLPK
@@ -204,9 +206,10 @@ namespace ucudnn {
     return convConfig->memory();
   }
 
-  void UcudnnHandle_t::log(const char *message) const {
+  void UcudnnHandle_t::log(const std::string message) {
     if(fo) {
       fo << message << std::endl;
+      //std::cout << message << std::endl;
     }
   }
 

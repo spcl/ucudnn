@@ -54,5 +54,4 @@ install(FILES ${headerFiles} DESTINATION include/vcudnn)
 enable_testing()
 add_test(maintest test/main)
 
-set_property(TEST AlexNet PROPERTY SKIP_RETURN_CODE 200) # GPU not found
 
