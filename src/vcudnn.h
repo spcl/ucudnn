@@ -13,7 +13,7 @@
 #include "convParam.h"
 #include "optimizer.h"
 #include "util.h"
-#include "ucudnnHandle.h"
+#include "vcudnnHandle.h"
 
 cudnnStatus_t cudnnCreate(UcudnnHandle_t *handle);
 cudnnStatus_t cudnnDestroy(UcudnnHandle_t handle);

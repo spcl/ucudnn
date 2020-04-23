@@ -23,7 +23,7 @@
 #include "optimizer.h"
 #include "optCache.h"
 #include "ilpOptimizer.h"
-#include "ucudnnHandle.h"
+#include "vcudnnHandle.h"
 #include "util.h"
 #include "safeWorkspace.h"
 

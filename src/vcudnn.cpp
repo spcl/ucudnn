@@ -12,8 +12,8 @@
 
 #include "convParam.h"
 #include "optimizer.h"
-#include "ucudnn.h"
-#include "ucudnnHandle.h"
+#include "vcudnn.h"
+#include "vcudnnHandle.h"
 
 using ucudnn::ConvType;
 using ucudnn::ConvParam;
