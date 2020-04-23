@@ -19,7 +19,7 @@
 #include <cudnn.h>
 #include <assert.h>
 
-#include "ucudnn.h"
+#include "vcudnn.h"
 #include "util.h"
 
 void cudaCheck(cudaError_t error) {
