@@ -31,7 +31,6 @@ namespace vcudnn {
   OptCache VcudnnHandle_t::optCache_;
 
   void VcudnnHandle_t::init() {
-    fo.open("vcudnn.log", std::ofstream::out | std::ofstream::app);
 
 //    optimizerBatchSizePolicy_ = Optimizer::stringToBatchSizePolicy(checkEnvironmentVariable("UCUDNN_BATCH_SIZE_POLICY",
 //											    "powerOfTwo"));
@@ -207,10 +206,13 @@ namespace vcudnn {
   }
 
   void VcudnnHandle_t::log(const std::string message) {
+    // TODO: handle this in a more manageable way, don't reopen the file every time
+    std::ofstream fo("vcudnn.log", std::ofstream::out | std::ofstream::app);
     if(fo) {
       fo << message << std::endl;
       //std::cout << message << std::endl;
     }
+    fo.close();
   }
 
   // cudnnConvolution*

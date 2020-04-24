@@ -9,8 +9,6 @@
 
 #include <unordered_map>
 #include <cudnn.h>
-#include <iostream>
-#include <fstream>
 #include <string>
 
 #include "convParam.h"
@@ -78,9 +76,6 @@ namespace vcudnn {
     std::shared_ptr<ConvDatabase> database_;
 
     static OptCache optCache_;
-
-    // log file
-    std::ofstream fo;
   };
 
 }
