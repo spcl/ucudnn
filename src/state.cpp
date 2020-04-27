@@ -6,6 +6,14 @@ namespace vcudnn {
     :batch_size(0), should_apply_mask(false) {
   }
 
+  void State::reinit(std::size_t batch_size) {
+    mask.resize(batch_size, false);
+    // TODO: this is a mock test so that we can trim down the batch size
+    for(int idx = 0; idx < batch_size; ++ idx) {
+      mask[idx] = i % 2;
+    }
+  }
+
   void State::setBatchSize(std::size_t batch_size) {
     this->batch_size = batch_size;
   }
@@ -18,14 +26,10 @@ namespace vcudnn {
     return this->apply_state;
   }
 
-  std::size_t State::applyMask() {
-    if(should_apply_mask) {
-      size_t new_batch_size = applyMask();
-      batch_size = new_batch_size;
-    }
-
-    return batch_size;
+  const std::vector<bool> &State::getMask() const {
+    return this->batch_mask;
   }
+
 
   State *get_state() {
     // C++11 standard guarantees that the opject initialization is thread safe

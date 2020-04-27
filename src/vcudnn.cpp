@@ -15,7 +15,9 @@
 #include "optimizer.h"
 #include "vcudnn.h"
 #include "vcudnnHandle.h"
+#include "batch_operations.h"
 #include "util.h"
+#include "state.h"
 
 using vcudnn::ConvType;
 using vcudnn::ConvParam;
@@ -57,17 +59,21 @@ cudnnStatus_t cudnnConvolutionForward(
 				      const LayerId layerId) {
   // forward all conv calls for now
   Tensor4DDesc d;
+  vector<pint> mapping;
   if(read_4d_desc(xDesc, &d)) {
     stringstream ss;
     ss << "cudnnConvolutionForward on ";
     ss << d.n << " x " << d.c << " x " << d.w << " x " << d.h << ", DT = " << d.dataType;
     handle.log(ss.str());
+
+    State * s = get_state();
+    s->reinit(d.n);
+    mapping = applyBatchMask(xDesc, x, s->getMask());
   } else {
     handle.log("cudnnConvolutionForward -- getting desc failed");
   }
 
-
-  return cudnnConvolutionForward(
+  auto result = cudnnConvolutionForward(
         handle.handle_,
         alpha,
         xDesc,
@@ -83,6 +89,11 @@ cudnnStatus_t cudnnConvolutionForward(
         y
         );
 
+  // undo mapping for conv input and output
+  revertBatchMask(xDesc, x, s->getMask(), mapping);
+  revertBatchMask(yDesc, y, s->getMask(), mapping);
+
+  return result;
 //  const ConvType convType = ConvType::Forward;
 //  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
 //  return handle.convolution(convParam, convType,
