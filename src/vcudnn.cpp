@@ -7,7 +7,7 @@
 #include <iostream>
 #include <assert.h>
 #include <stdint.h>
-#include <string.h>
+#include <sstream>
 
 #include <cudnn.h>
 
@@ -58,10 +58,12 @@ cudnnStatus_t cudnnConvolutionForward(
   // forward all conv calls for now
   Tensor4DDesc d;
   if(read_4d_desc(xDesc, &d)) {
-    handle.log(format("cudnnConvolutionForward on {} x {} x {} x {}, DT = {}",
-                      d.n, d.c, d.w, d.h, d.dataType));
+    stringstream ss;
+    ss << "cudnnConvolutionForward on ";
+    ss << d.n << " x " << d.c << " x " << d.w << " x " << d.h << ", DT = " << d.dataType;
+    handle.log(ss.str());
   } else {
-    handle.log("cudnnConvolutionForward");
+    handle.log("cudnnConvolutionForward -- getting desc failed");
   }
 
 
