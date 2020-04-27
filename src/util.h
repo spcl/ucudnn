@@ -192,6 +192,21 @@ namespace vcudnn {
   size_t getFreeDeviceMemorySize();
   long micros();
 
+  // vcudnn functionality
+  struct Tensor4DDesc {
+    cudnnDataType_t dataType;
+    int n;
+    int c;
+    int h;
+    int w;
+    int nStride;
+    int cStride;
+    int hStride;
+    int wStride;
+  };
+
+  bool read_4d_desc(const cudnnTensorDescriptor_t & t, Tensor4DDesc * d);
+
 }
 
 #endif

@@ -405,4 +405,21 @@ namespace vcudnn {
     return tv.tv_sec*1e6 + tv.tv_usec;
   }
 
+  // vcudnn functionality
+
+  bool read_4d_desc(const cudnnTensorDescriptor_t &t, Tensor4DDesc *d) {
+    return cudnnGetTensor4dDescriptor(
+          t,
+          &d->dataType,
+          &d->n,
+          &d->c,
+          &d->h,
+          &d->w,
+          &d->nStride,
+          &d->cStride,
+          &d->hStride,
+          &d->wStride)
+        == CUDNN_STATUS_SUCCESS;
+  }
+
 }

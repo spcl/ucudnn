@@ -7,6 +7,7 @@
 #include <iostream>
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <cudnn.h>
 
@@ -14,12 +15,15 @@
 #include "optimizer.h"
 #include "vcudnn.h"
 #include "vcudnnHandle.h"
+#include "util.h"
 
 using vcudnn::ConvType;
 using vcudnn::ConvParam;
 using vcudnn::ConvConfig;
 using vcudnn::getFreeDeviceMemorySize;
 using vcudnn::LayerId;
+using namespace vcudnn;
+using namespace std;
 
 cudnnStatus_t cudnnCreate(VcudnnHandle_t *handle) {
   return cudnnCreate(& handle->handle_);
@@ -52,7 +56,14 @@ cudnnStatus_t cudnnConvolutionForward(
 				      void                               *y,
 				      const LayerId layerId) {
   // forward all conv calls for now
-  handle.log("cudnnConvolutionForward");
+  Tensor4DDesc d;
+  if(read_4d_desc(xDesc, &d)) {
+    handle.log(format("cudnnConvolutionForward on {} x {} x {} x {}, DT = {}",
+                      d.n, d.c, d.w, d.h, d.dataType));
+  } else {
+    handle.log("cudnnConvolutionForward");
+  }
+
 
   return cudnnConvolutionForward(
         handle.handle_,
