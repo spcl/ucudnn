@@ -58,17 +58,55 @@ cudnnStatus_t cudnnConvolutionForward(
 				      void                               *y,
 				      const LayerId layerId) {
   // forward all conv calls for now
-  Tensor4DDesc d;
+  Tensor4DDesc dx;
+  Tensor4DDesc dy;
   vector<pint> mapping;
-  if(read_4d_desc(xDesc, &d)) {
+
+  // TODO: this can cause undefined behaviors if the original object x is pointing to is indeed const
+  void * nx = const_cast<void*>(x);
+  cudnnTensorDescriptor_t & tdx = const_cast<cudnnTensorDescriptor_t&>(xDesc);
+  cudnnTensorDescriptor_t & tdy = const_cast<cudnnTensorDescriptor_t&>(yDesc);
+
+  bool can_apply_shrink = read_4d_desc(xDesc, &dx) && read_4d_desc(yDesc, &dy);
+
+  if(can_apply_shrink) {
     stringstream ss;
     ss << "cudnnConvolutionForward on ";
-    ss << d.n << " x " << d.c << " x " << d.w << " x " << d.h << ", DT = " << d.dataType;
+    ss << dx.n << " x " << dx.c << " x " << dx.w << " x " << dx.h << ", DT = " << dx.dataType;
     handle.log(ss.str());
 
     State * s = get_state();
-    s->reinit(d.n);
-    mapping = applyBatchMask(xDesc, x, s->getMask());
+    s->reinit(dx.n);
+    mapping = applyBatchMask(xDesc, nx, s->getMask());
+
+    // change descriptors
+    size_t new_batch_size = s->getBatchSize();
+    cudnnSetTensor4dDescriptorEx(
+      tdx,
+      dx.dataType,
+      new_batch_size,
+      dx.c,
+      dx.h,
+      dx.w,
+      dx.nStride,
+      dx.cStride,
+      dx.hStride,
+      dx.wStride
+    );
+
+    cudnnSetTensor4dDescriptorEx(
+      tdy,
+      dy.dataType,
+      new_batch_size,
+      dy.c,
+      dy.h,
+      dy.w,
+      dy.nStride,
+      dy.cStride,
+      dy.hStride,
+      dy.wStride
+    );
+    handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getOldBatchSize()));
   } else {
     handle.log("cudnnConvolutionForward -- getting desc failed");
   }
@@ -76,7 +114,7 @@ cudnnStatus_t cudnnConvolutionForward(
   auto result = cudnnConvolutionForward(
         handle.handle_,
         alpha,
-        xDesc,
+        tdx,
         x,
         wDesc,
         w,
@@ -85,13 +123,46 @@ cudnnStatus_t cudnnConvolutionForward(
         workSpace,
         workSpaceSizeInBytes,
         beta,
-        yDesc,
+        tdy,
         y
         );
 
-  // undo mapping for conv input and output
-  revertBatchMask(xDesc, x, s->getMask(), mapping);
-  revertBatchMask(yDesc, y, s->getMask(), mapping);
+  if(can_apply_shrink) {
+    // undo mapping for conv input and output
+    State * s = get_state();
+    revertBatchMask(xDesc, nx, s->getMask(), mapping);
+    revertBatchMask(yDesc, y, s->getMask(), mapping);
+
+    // undo descriptor changes
+    size_t old_batch_size = s->getOldBatchSize();
+    cudnnSetTensor4dDescriptorEx(
+      tdx,
+      dx.dataType,
+      old_batch_size,
+      dx.c,
+      dx.h,
+      dx.w,
+      dx.nStride,
+      dx.cStride,
+      dx.hStride,
+      dx.wStride
+    );
+
+    cudnnSetTensor4dDescriptorEx(
+      tdy,
+      dy.dataType,
+      old_batch_size,
+      dy.c,
+      dy.h,
+      dy.w,
+      dy.nStride,
+      dy.cStride,
+      dy.hStride,
+      dy.wStride
+    );
+
+    handle.log("reverted mask for x and y to " + to_string(s->getOldBatchSize()) + " from " + to_string(s->getBatchSize()));
+  }
 
   return result;
 //  const ConvType convType = ConvType::Forward;

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cudnn.h>
 #include <utility>
+#include <vector>
 
 namespace vcudnn {
   typedef std::pair<int, int> pint;

@@ -27,7 +27,10 @@ namespace vcudnn {
     void setApplyState(ApplyMaskState new_state);
     ApplyMaskState applyState() const;
     std::vector<bool> const & getMask() const;
+    std::size_t getBatchSize() const;
+    std::size_t getOldBatchSize() const;
 
+    friend State * get_state();
   };
 
   State * get_state();
