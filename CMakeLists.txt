@@ -34,9 +34,9 @@ find_library(CUDNN_LIBRARY NAMES cudnn)
 find_library(CUDART_LIBRARY NAMES cudart)
 find_package_handle_standard_args(CUDNN DEFAULT_MSG CUDNN_INCLUDE CUDNN_LIBRARY)
 
-file(GLOB cppFiles src/*.cpp)
+file(GLOB cppFiles src/*.cpp extern/*)
 file(GLOB headerFiles src/*.h)
-file(GLOB testCppFiles test/main.cpp)
+file(GLOB testCppFiles test/*.cpp)
 
 include_directories(src)
 
@@ -46,12 +46,13 @@ target_link_libraries(vcudnn cublas cudnn cudart)
 
 if(VCUDNN_TEST)
   add_subdirectory(test)
+  add_definitions(-DVCUDNN_TEST=1)
 endif()
 
 install(TARGETS vcudnn LIBRARY DESTINATION lib)
 install(FILES ${headerFiles} DESTINATION include/vcudnn)
 
 enable_testing()
-add_test(maintest test/main)
+add_test(vcudnn_test test/vcudnn_test)
 
 
