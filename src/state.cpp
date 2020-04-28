@@ -35,6 +35,12 @@ namespace vcudnn {
     return this->batch_mask;
   }
 
+  std::size_t State::removeFromMask(int idx) {
+    this->batch_size -= this->batch_mask[idx];
+    this->batch_mask[idx] = false;
+    return this->batch_size;
+  }
+
   std::size_t State::getBatchSize() const {
     return this->batch_size;
   }

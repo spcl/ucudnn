@@ -58,15 +58,14 @@ cudnnStatus_t cudnnConvolutionForward(
 				      void                               *y,
 				      const LayerId layerId) {
   // forward all conv calls for now
-  Tensor4DDesc dx;
-  Tensor4DDesc dy;
-  vector<pint> mapping;
 
   // TODO: this can cause undefined behaviors if the original object x is pointing to is indeed const
   void * nx = const_cast<void*>(x);
   cudnnTensorDescriptor_t & tdx = const_cast<cudnnTensorDescriptor_t&>(xDesc);
   cudnnTensorDescriptor_t & tdy = const_cast<cudnnTensorDescriptor_t&>(yDesc);
 
+  Tensor4DDesc dx;
+  Tensor4DDesc dy;
   bool can_apply_shrink = read_4d_desc(xDesc, &dx) && read_4d_desc(yDesc, &dy);
 
   if(can_apply_shrink) {
@@ -76,24 +75,14 @@ cudnnStatus_t cudnnConvolutionForward(
     handle.log(ss.str());
 
     State * s = get_state();
+
+    // TODO: this should come from the outside
     s->reinit(dx.n);
-    mapping = applyBatchMask(xDesc, nx, s->getMask());
+
+    size_t new_batch_size = s->getBatchSize();
+    applyBatchMask(dx, &tdx, nx, s->getMask(), new_batch_size);
 
     // change descriptors
-    size_t new_batch_size = s->getBatchSize();
-    cudnnSetTensor4dDescriptorEx(
-      tdx,
-      dx.dataType,
-      new_batch_size,
-      dx.c,
-      dx.h,
-      dx.w,
-      dx.nStride,
-      dx.cStride,
-      dx.hStride,
-      dx.wStride
-    );
-
     cudnnSetTensor4dDescriptorEx(
       tdy,
       dy.dataType,
@@ -130,36 +119,10 @@ cudnnStatus_t cudnnConvolutionForward(
   if(can_apply_shrink) {
     // undo mapping for conv input and output
     State * s = get_state();
-    revertBatchMask(xDesc, nx, s->getMask(), mapping);
-    revertBatchMask(yDesc, y, s->getMask(), mapping);
-
-    // undo descriptor changes
     size_t old_batch_size = s->getOldBatchSize();
-    cudnnSetTensor4dDescriptorEx(
-      tdx,
-      dx.dataType,
-      old_batch_size,
-      dx.c,
-      dx.h,
-      dx.w,
-      dx.nStride,
-      dx.cStride,
-      dx.hStride,
-      dx.wStride
-    );
-
-    cudnnSetTensor4dDescriptorEx(
-      tdy,
-      dy.dataType,
-      old_batch_size,
-      dy.c,
-      dy.h,
-      dy.w,
-      dy.nStride,
-      dy.cStride,
-      dy.hStride,
-      dy.wStride
-    );
+    auto & mask = s->getMask();
+    applyBatchMask(dx, &tdx, nx, mask, old_batch_size, BatchMaskBackward);
+    applyBatchMask(dy, &tdy, y, mask, old_batch_size, BatchMaskBackward);
 
     handle.log("reverted mask for x and y to " + to_string(s->getOldBatchSize()) + " from " + to_string(s->getBatchSize()));
   }

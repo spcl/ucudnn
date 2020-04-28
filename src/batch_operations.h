@@ -6,8 +6,15 @@
 #include <utility>
 #include <vector>
 
+#include "util.h"
+
 namespace vcudnn {
   typedef std::pair<int, int> pint;
+
+  enum BatchMaskingDirection : uint8_t {
+    BatchMaskForward = 0,
+    BatchMaskBackward
+  };
 
   /* Logically shrink the minibatch of input tensors
    * by overwriting lower index, unused values with
@@ -15,8 +22,21 @@ namespace vcudnn {
    *
    * Returns new minibatch size.
    */
-  std::vector<pint> applyBatchMask(cudnnTensorDescriptor_t desc, void* tensor, std::vector<bool> const & mask);
-  std::size_t revertBatchMask(cudnnTensorDescriptor_t desc, void* tensor, std::vector<bool> const & mask, std::vector<pint> const & mapping);
+  void applyBatchMask(
+      const Tensor4DDesc & desc,
+      cudnnTensorDescriptor_t * cudnn_desc,
+      void* tensor,
+      std::vector<bool> const & mask,
+      std::size_t new_batch_size,
+      BatchMaskingDirection direction = BatchMaskForward
+      );
+
+  // internal functions
+  void rearrange_by_mask(
+      void * data,
+      std::vector<bool> const & mask,
+      std::size_t size,
+      BatchMaskingDirection direction);
 }
 
 
