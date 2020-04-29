@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace vcudnn {
-  enum ApplyMaskState {
+  enum MaskedParam {
     None = 0,
     Input,
     Output,
@@ -14,8 +14,15 @@ namespace vcudnn {
   class State {
   private:
     std::vector<bool> batch_mask;
+
+    // size of the reduced batch i.e. the active batch
     std::size_t batch_size;
-    ApplyMaskState apply_state;
+
+    // parameters to apply the mask to before calling into cudnn
+    MaskedParam mask_params;
+
+    // parameters to revert the mastk from after calling into cudnn
+    MaskedParam unmask_params;
 
     State();
 
@@ -24,17 +31,22 @@ namespace vcudnn {
 
     // TODO: should these operations be thread safe?
     void setBatchSize(std::size_t batch_size);
-    void setApplyState(ApplyMaskState new_state);
-    ApplyMaskState applyState() const;
+
+    void setMaskParams(MaskedParam params);
+    void setUnmaskParams(MaskedParam params);
+    MaskedParam getMaskParams() const;
+    MaskedParam getUnmaskParams() const;
+
     std::vector<bool> const & getMask() const;
     std::size_t removeFromMask(int idx);
-    std::size_t getBatchSize() const;
-    std::size_t getOldBatchSize() const;
 
-    friend State * get_state();
+    std::size_t getReducedBatchSize() const;
+    std::size_t getFullBatchSize() const;
+
+    friend State * getState();
   };
 
-  State * get_state();
+  State * getState();
 }
 
 #endif // STATE_H

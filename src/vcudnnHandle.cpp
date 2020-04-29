@@ -205,16 +205,6 @@ namespace vcudnn {
     return convConfig->memory();
   }
 
-  void VcudnnHandle_t::log(const std::string message) {
-    // TODO: handle this in a more manageable way, don't reopen the file every time
-    std::ofstream fo("vcudnn.log", std::ofstream::out | std::ofstream::app);
-    if(fo) {
-      fo << message << std::endl;
-      //std::cout << message << std::endl;
-    }
-    fo.close();
-  }
-
   // cudnnConvolution*
   cudnnStatus_t VcudnnHandle_t::convolution(const ConvParam convParam, const ConvType convType,
 					    const cudnnFilterDescriptor_t wDesc,
@@ -351,4 +341,13 @@ namespace vcudnn {
     return CUDNN_STATUS_SUCCESS;
   }
 
+  void VcudnnHandle_t::log(const std::string message) {
+    // TODO: handle this in a more manageable way, don't reopen the file every time
+    std::ofstream fo("vcudnn.log", std::ofstream::out | std::ofstream::app);
+    if(fo) {
+      fo << message << std::endl;
+      //std::cout << message << std::endl;
+    }
+    fo.close();
+  }
 }

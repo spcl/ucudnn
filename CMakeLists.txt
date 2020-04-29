@@ -46,7 +46,6 @@ target_link_libraries(vcudnn cublas cudnn cudart)
 
 if(VCUDNN_TEST)
   add_subdirectory(test)
-  add_definitions(-DVCUDNN_TEST=1)
 endif()
 
 install(TARGETS vcudnn LIBRARY DESTINATION lib)

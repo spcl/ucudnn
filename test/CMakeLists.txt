@@ -1,4 +1,5 @@
-file(GLOB cppFiles *.cpp)
+file(GLOB cppFiles *.cpp ../src/*.cpp)
 set(test_filename vcudnn_test)
 add_executable(${test_filename} ${cppFiles})
-target_link_libraries(${test_filename} cudart cublas curand cudnn vcudnn)
+target_link_libraries(${test_filename} cudart cublas curand cudnn pthread)
+target_compile_definitions(${test_filename} PUBLIC VCUDNN_TEST)

@@ -6,6 +6,7 @@ namespace vcudnn {
     :batch_size(0) {
   }
 
+  // TODO: this function should not exist
   void State::reinit(std::size_t batch_size) {
     batch_mask.resize(batch_size, false);
 
@@ -21,14 +22,23 @@ namespace vcudnn {
 
   void State::setBatchSize(std::size_t batch_size) {
     this->batch_size = batch_size;
+    this->batch_mask.resize(batch_size, true);
   }
 
-  void State::setApplyState(ApplyMaskState new_state) {
-    this->apply_state = new_state;
+  void State::setMaskParams(MaskedParam params) {
+    this->mask_params = params;
   }
 
-  ApplyMaskState State::applyState() const {
-    return this->apply_state;
+  void State::setUnmaskParams(MaskedParam params) {
+    this->unmask_params = params;
+  }
+
+  MaskedParam State::getMaskParams() const {
+    return this->mask_params;
+  }
+
+  MaskedParam State::getUnmaskParams() const {
+    return this->unmask_params;
   }
 
   const std::vector<bool> & State::getMask() const {
@@ -36,20 +46,20 @@ namespace vcudnn {
   }
 
   std::size_t State::removeFromMask(int idx) {
-    this->batch_size -= this->batch_mask[idx];
+    this->batch_size -= this->batch_mask.at(idx);
     this->batch_mask[idx] = false;
     return this->batch_size;
   }
 
-  std::size_t State::getBatchSize() const {
+  std::size_t State::getReducedBatchSize() const {
     return this->batch_size;
   }
 
-  std::size_t State::getOldBatchSize() const {
+  std::size_t State::getFullBatchSize() const {
     return this->batch_mask.size();
   }
 
-  State *get_state() {
+  State *getState() {
     // C++11 standard guarantees that the opject initialization is thread safe
     // https://stackoverflow.com/a/19907903/1218284
     static State state;

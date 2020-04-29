@@ -237,4 +237,17 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
 							     size_t                              *sizeInBytes,
 							     const vcudnn::LayerId layerId=vcudnn::LayerIdAny);
 
+// vcudnn API
+
+/* Set the initial batch size */
+void vcudnnSetBatchSize(std::size_t size);
+
+/* Mark a item from the batch for removal for subsequent operations */
+std::size_t vcudnnRemoveFromBatch(std::size_t idx);
+
+/* Retrieve the size of the reduced batch i.e. after performing the reduction */
+std::size_t vcudnnGetReducedBatchSize();
+
+
+
 #endif

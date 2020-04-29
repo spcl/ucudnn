@@ -67,6 +67,8 @@ cudnnStatus_t cudnnConvolutionForward(
   Tensor4DDesc dx;
   Tensor4DDesc dy;
   bool can_apply_shrink = read_4d_desc(xDesc, &dx) && read_4d_desc(yDesc, &dy);
+  
+  //can_apply_shrink = false;
 
   if(can_apply_shrink) {
     stringstream ss;
@@ -74,12 +76,12 @@ cudnnStatus_t cudnnConvolutionForward(
     ss << dx.n << " x " << dx.c << " x " << dx.w << " x " << dx.h << ", DT = " << dx.dataType;
     handle.log(ss.str());
 
-    State * s = get_state();
+    State * s = getState();
 
     // TODO: this should come from the outside
     s->reinit(dx.n);
 
-    size_t new_batch_size = s->getBatchSize();
+    size_t new_batch_size = s->getReducedBatchSize();
     applyBatchMask(dx, &tdx, nx, s->getMask(), new_batch_size);
 
     // change descriptors
@@ -95,7 +97,7 @@ cudnnStatus_t cudnnConvolutionForward(
       dy.hStride,
       dy.wStride
     );
-    handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getOldBatchSize()));
+    handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getFullBatchSize()));
   } else {
     handle.log("cudnnConvolutionForward -- getting desc failed");
   }
@@ -118,13 +120,13 @@ cudnnStatus_t cudnnConvolutionForward(
 
   if(can_apply_shrink) {
     // undo mapping for conv input and output
-    State * s = get_state();
-    size_t old_batch_size = s->getOldBatchSize();
+    State * s = getState();
+    size_t old_batch_size = s->getFullBatchSize();
     auto & mask = s->getMask();
     applyBatchMask(dx, &tdx, nx, mask, old_batch_size, BatchMaskBackward);
     applyBatchMask(dy, &tdy, y, mask, old_batch_size, BatchMaskBackward);
 
-    handle.log("reverted mask for x and y to " + to_string(s->getOldBatchSize()) + " from " + to_string(s->getBatchSize()));
+    handle.log("reverted mask for x and y to " + to_string(s->getFullBatchSize()) + " from " + to_string(s->getReducedBatchSize()));
   }
 
   return result;
@@ -671,3 +673,22 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterWorkspaceSize(
 //  *sizeInBytes = handle.getWorkspaceSize(convParam, convType, layerId);
 //  return CUDNN_STATUS_SUCCESS;
 }
+
+// vcudnn API
+void vcudnnSetBatchSize(std::size_t size) {
+  State * s = getState();
+  s->setBatchSize(size);
+}
+
+std::size_t vcudnnRemoveFromBatch(std::size_t idx) {
+  State * s = getState();
+  return s->removeFromMask(idx);
+}
+
+std::size_t vcudnnGetReducedBatchSize() {
+  State * s = getState();
+  return s->getReducedBatchSize();
+}
+
+
+
