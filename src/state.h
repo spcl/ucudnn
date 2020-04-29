@@ -27,8 +27,6 @@ namespace vcudnn {
     State();
 
   public:
-    void reinit(std::size_t batch_size);
-
     // TODO: should these operations be thread safe?
     void setBatchSize(std::size_t batch_size);
 

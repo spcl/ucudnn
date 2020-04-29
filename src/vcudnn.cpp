@@ -78,9 +78,6 @@ cudnnStatus_t cudnnConvolutionForward(
 
     State * s = getState();
 
-    // TODO: this should come from the outside
-    s->reinit(dx.n);
-
     size_t new_batch_size = s->getReducedBatchSize();
     applyBatchMask(dx, &tdx, nx, s->getMask(), new_batch_size);
 

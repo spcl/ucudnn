@@ -2,3 +2,4 @@
 .idea/
 CMakeLists.txt.user
 bin/
+*.swp

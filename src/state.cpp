@@ -6,20 +6,6 @@ namespace vcudnn {
     :batch_size(0) {
   }
 
-  // TODO: this function should not exist
-  void State::reinit(std::size_t batch_size) {
-    batch_mask.resize(batch_size, false);
-
-    // TODO: this is a mock test so that we can trim down the batch size
-    int bs = 0;
-    for(int idx = 0; idx < batch_size; ++ idx) {
-      batch_mask[idx] = idx % 2;
-      bs += batch_mask[idx];
-    }
-
-    this->batch_size = bs;
-  }
-
   void State::setBatchSize(std::size_t batch_size) {
     this->batch_size = batch_size;
     this->batch_mask.resize(batch_size, true);

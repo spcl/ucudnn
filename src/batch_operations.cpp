@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 #ifdef VCUDNN_TEST
 #define MEMCPY_FN(a, b, c, d) memcpy(a, b, c);
 #else
