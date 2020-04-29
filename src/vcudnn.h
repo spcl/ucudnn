@@ -14,6 +14,7 @@
 #include "optimizer.h"
 #include "util.h"
 #include "vcudnnHandle.h"
+#include "state.h"
 
 cudnnStatus_t cudnnCreate(VcudnnHandle_t *handle);
 cudnnStatus_t cudnnDestroy(VcudnnHandle_t handle);
@@ -248,6 +249,7 @@ std::size_t vcudnnRemoveFromBatch(std::size_t idx);
 /* Retrieve the size of the reduced batch i.e. after performing the reduction */
 std::size_t vcudnnGetReducedBatchSize();
 
-
+void vcudnnSetMaskParams(vcudnn::MaskedParam params);
+void vcudnnSetUnmaskParams(vcudnn::MaskedParam params);
 
 #endif
