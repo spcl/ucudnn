@@ -150,30 +150,72 @@ cudnnStatus_t cudnnConvolutionBackwardData(
 					   const cudnnTensorDescriptor_t      dxDesc,
 					   void                               *dx,
 					   const LayerId layerId) {
-  handle.log("cudnnConvolutionBackwardData");
-  return cudnnConvolutionBackwardData(
+  
+  // TODO: this can cause undefined behaviors if the original object x is pointing to is indeed const
+  void * ny = const_cast<void*>(dy);
+  cudnnTensorDescriptor_t & tdx = const_cast<cudnnTensorDescriptor_t&>(dxDesc);
+  cudnnTensorDescriptor_t & tdy = const_cast<cudnnTensorDescriptor_t&>(dyDesc);
+
+  Tensor4DDesc ddx;
+  Tensor4DDesc ddy;
+
+  read_4d_desc(dxDesc, &ddx);
+  read_4d_desc(dyDesc, &ddy);
+
+  stringstream ss;
+  ss << "cudnnConvolutionBackwardData on ";
+  ss << ddx.n << " x " << ddx.c << " x " << ddx.w << " x " << ddx.h << ", DT = " << ddx.dataType;
+  handle.log(ss.str());
+
+  State * s = getState();
+  size_t new_batch_size = s->getReducedBatchSize();
+  auto & mask = s->getMask();
+
+  // shuffle inputs when needed
+  auto pre_mask = s->getMaskParams();
+  // Note: in this operation, y is input and x is input/output
+  if(pre_mask == Output || pre_mask == Both) {
+    applyBatchMask(ddx, &tdx, dx, mask, new_batch_size);
+  }
+  if(pre_mask == Input || pre_mask == Both) {
+    applyBatchMask(ddy, &tdy, ny, mask, new_batch_size);
+  }
+  handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getFullBatchSize()));
+
+  auto result = cudnnConvolutionBackwardData(
         handle.handle_,
         alpha,
         wDesc,
         w,
-        dyDesc,
+        tdy,
         dy,
         convDesc,
         algo,
         workSpace,
         workSpaceSizeInBytes,
         beta,
-        dxDesc,
+        tdx,
         dx
   );
-//  const ConvType convType = ConvType::BackwardData;
-//  const ConvParam convParam(dxDesc, dyDesc, wDesc, convDesc);
-//  return handle.convolution(convParam, convType,
-//			    wDesc, convDesc,
-//			    dx, (void *) dy, (void *) w, workSpace, workSpaceSizeInBytes,
-//			    alpha, beta,
-//			    layerId);
+  
+  // unshuffle outputs when needed
+  auto post_mask = s->getUnmaskParams();
+  size_t old_batch_size = s->getFullBatchSize();
+
+  // unshuffle inputs / outputs when needed
+  // Note: in this operation, y is input and x is input/output
+  if(post_mask == Output || post_mask == Both) {
+    applyBatchMask(ddx, &tdx, dx, mask, old_batch_size, BatchMaskRevert);
+  }
+  if(post_mask == Input || post_mask == Both) {
+    applyBatchMask(ddy, &tdy, ny, mask, old_batch_size, BatchMaskRevert);
+  }
+
+  handle.log("reverted mask for x and y to " + to_string(s->getFullBatchSize()) + " from " + to_string(s->getReducedBatchSize()));
+
+  return result;
 }
+
 cudnnStatus_t cudnnConvolutionBackwardFilter(
 					     VcudnnHandle_t                     handle,
 					     const void                         *alpha,
@@ -189,8 +231,39 @@ cudnnStatus_t cudnnConvolutionBackwardFilter(
 					     const cudnnFilterDescriptor_t      dwDesc,
 					     void                               *dw,
 					     const LayerId layerId) {
-  handle.log("cudnnConvolutionBackwardFilter");
-  return cudnnConvolutionBackwardFilter(
+  // TODO: this can cause undefined behaviors if the original object x is pointing to is indeed const
+  void * nx = const_cast<void*>(x);
+  void * ny = const_cast<void*>(dy);
+  cudnnTensorDescriptor_t & tdx = const_cast<cudnnTensorDescriptor_t&>(xDesc);
+  cudnnTensorDescriptor_t & tdy = const_cast<cudnnTensorDescriptor_t&>(dyDesc);
+
+  Tensor4DDesc ddx;
+  Tensor4DDesc ddy;
+
+  read_4d_desc(xDesc, &ddx);
+  read_4d_desc(dyDesc, &ddy);
+
+  stringstream ss;
+  ss << "cudnnConvolutionBackwardFilter on ";
+  ss << ddx.n << " x " << ddx.c << " x " << ddx.w << " x " << ddx.h << ", DT = " << ddx.dataType;
+  handle.log(ss.str());
+
+  State * s = getState();
+  size_t new_batch_size = s->getReducedBatchSize();
+  auto & mask = s->getMask();
+
+  // shuffle inputs when needed
+  auto pre_mask = s->getMaskParams();
+  // Note: in this operation, y is input and x is input/output
+  if(pre_mask == Output || pre_mask == Both) {
+    applyBatchMask(ddx, &tdx, nx, mask, new_batch_size);
+  }
+  if(pre_mask == Input || pre_mask == Both) {
+    applyBatchMask(ddy, &tdy, ny, mask, new_batch_size);
+  }
+  handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getFullBatchSize()));
+
+  auto result = cudnnConvolutionBackwardFilter(
         handle.handle_,
         alpha,
         xDesc,
@@ -205,14 +278,23 @@ cudnnStatus_t cudnnConvolutionBackwardFilter(
         dwDesc,
         dw
   );
+  
+  // unshuffle outputs when needed
+  auto post_mask = s->getUnmaskParams();
+  size_t old_batch_size = s->getFullBatchSize();
 
-//  const ConvType convType = ConvType::BackwardFilter;
-//  const ConvParam convParam(xDesc, dyDesc, dwDesc, convDesc);
-//  return handle.convolution(convParam, convType,
-//			    dwDesc, convDesc,
-//			    (void *) x, (void *) dy, dw, workSpace, workSpaceSizeInBytes,
-//			    alpha, beta,
-//			    layerId);
+  // unshuffle inputs / outputs when needed
+  // Note: in this operation, y is input and x is input/output
+  if(post_mask == Output || post_mask == Both) {
+    applyBatchMask(ddx, &tdx, nx, mask, old_batch_size, BatchMaskRevert);
+  }
+  if(post_mask == Input || post_mask == Both) {
+    applyBatchMask(ddy, &tdy, ny, mask, old_batch_size, BatchMaskRevert);
+  }
+
+  handle.log("reverted mask for x and y to " + to_string(s->getFullBatchSize()) + " from " + to_string(s->getReducedBatchSize()));
+
+  return result;
 }
 
 // cudnnGetConvolution*Algorithm
@@ -375,6 +457,10 @@ cudnnStatus_t cudnnGetConvolutionBackwardFilterAlgorithm_v7(
 //  return cudnnFindConvolutionBackwardFilterAlgorithm(handle, srcDesc, diffDesc, convDesc, gradDesc,
 //						     requestedAlgoCount, returnedAlgoCount, perfResults, layerId);
 }
+
+/* Note: the cudnnFindConvolution*Algorithm are not changed since they are
+ * only needed for performance estimations.
+ */
 
 // cudnnFindConvolution*Algorithm
 cudnnStatus_t cudnnFindConvolutionForwardAlgorithm(

@@ -3,7 +3,7 @@
 
 namespace vcudnn {
   State::State()
-    :batch_size(0) {
+    :batch_size(0), mask_params(None), unmask_params(None) {
   }
 
   void State::setBatchSize(std::size_t batch_size) {
