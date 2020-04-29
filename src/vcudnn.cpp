@@ -57,7 +57,19 @@ cudnnStatus_t cudnnConvolutionForward(
 				      const cudnnTensorDescriptor_t      yDesc,
 				      void                               *y,
 				      const LayerId layerId) {
-  // forward all conv calls for now
+  /*
+   * Tensor descriptions and tensor shuffles are assumed to be in sync
+   * i.e. if an input needs shuffling, then its tensor desc will also be updated.
+   *
+   * The following rules are applied:
+   * - for input tensor:
+   *   -> shuffle and change description before call, according to config
+   *   -> unshuffle and revert desc after call, according to config
+   * - for input/output tensor:
+   *   -> shuffle & upd description before call, according to config
+   *   -> unshuffle & revert description after call, according to config
+   * - for output tensor: unshuffle and revert description, according to config
+   */
 
   // TODO: this can cause undefined behaviors if the original object x is pointing to is indeed const
   void * nx = const_cast<void*>(x);
@@ -66,33 +78,30 @@ cudnnStatus_t cudnnConvolutionForward(
 
   Tensor4DDesc dx;
   Tensor4DDesc dy;
-  bool can_apply_shrink = read_4d_desc(xDesc, &dx) && read_4d_desc(yDesc, &dy);
-  
+
+  read_4d_desc(xDesc, &dx);
+  read_4d_desc(yDesc, &dy);
+
   stringstream ss;
   ss << "cudnnConvolutionForward on ";
   ss << dx.n << " x " << dx.c << " x " << dx.w << " x " << dx.h << ", DT = " << dx.dataType;
   handle.log(ss.str());
 
   State * s = getState();
-
   size_t new_batch_size = s->getReducedBatchSize();
-  applyBatchMask(dx, &tdx, nx, s->getMask(), new_batch_size);
+  auto & mask = s->getMask();
 
-  // change descriptors
-  cudnnSetTensor4dDescriptorEx(
-    tdy,
-    dy.dataType,
-    new_batch_size,
-    dy.c,
-    dy.h,
-    dy.w,
-    dy.nStride,
-    dy.cStride,
-    dy.hStride,
-    dy.wStride
-  );
+  // shuffle inputs when needed
+  auto pre_mask = s->getMaskParams();
+  if(pre_mask == Input || pre_mask == Both) {
+    applyBatchMask(dx, &tdx, nx, mask, new_batch_size);
+  }
+  if(pre_mask == Output || pre_mask == Both) {
+    applyBatchMask(dy, &tdy, y, mask, new_batch_size);
+  }
   handle.log("compressed x and y to " + to_string(new_batch_size) + " from " + to_string(s->getFullBatchSize()));
 
+  // call cudnn
   auto result = cudnnConvolutionForward(
         handle.handle_,
         alpha,
@@ -109,23 +118,23 @@ cudnnStatus_t cudnnConvolutionForward(
         y
         );
 
-  // undo mapping for conv input and output
+  // unshuffle outputs when needed
+  auto post_mask = s->getUnmaskParams();
   size_t old_batch_size = s->getFullBatchSize();
-  auto & mask = s->getMask();
-  applyBatchMask(dx, &tdx, nx, mask, old_batch_size, BatchMaskBackward);
-  applyBatchMask(dy, &tdy, y, mask, old_batch_size, BatchMaskBackward);
+
+  // unshuffle inputs / outputs when needed
+  if(post_mask == Input || post_mask == Both) {
+    applyBatchMask(dx, &tdx, nx, mask, old_batch_size, BatchMaskRevert);
+  }
+  if(post_mask == Output || post_mask == Both) {
+    applyBatchMask(dy, &tdy, y, mask, old_batch_size, BatchMaskRevert);
+  }
 
   handle.log("reverted mask for x and y to " + to_string(s->getFullBatchSize()) + " from " + to_string(s->getReducedBatchSize()));
 
   return result;
-//  const ConvType convType = ConvType::Forward;
-//  const ConvParam convParam(xDesc, yDesc, wDesc, convDesc);
-//  return handle.convolution(convParam, convType,
-//			    wDesc, convDesc,
-//			    (void *) x, y, (void *) w, workSpace, workSpaceSizeInBytes,
-//			    alpha, beta,
-//			    layerId);
 }
+
 cudnnStatus_t cudnnConvolutionBackwardData(
 					   VcudnnHandle_t                     handle,
 					   const void                         *alpha,

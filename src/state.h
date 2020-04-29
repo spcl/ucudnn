@@ -6,8 +6,8 @@
 namespace vcudnn {
   enum MaskedParam {
     None = 0,
-    Input,
-    Output,
+    Input,    // input parameter
+    Output,   // output or input/output parameter
     Both
   };
 
@@ -21,7 +21,7 @@ namespace vcudnn {
     // parameters to apply the mask to before calling into cudnn
     MaskedParam mask_params;
 
-    // parameters to revert the mastk from after calling into cudnn
+    // parameters to revert the mask from after calling into cudnn
     MaskedParam unmask_params;
 
     State();

@@ -11,9 +11,9 @@
 namespace vcudnn {
   typedef std::pair<int, int> pint;
 
-  enum BatchMaskingDirection : uint8_t {
-    BatchMaskForward = 0,
-    BatchMaskBackward
+  enum BatchMaskingOperation : uint8_t {
+    BatchMaskApply = 0,
+    BatchMaskRevert
   };
 
   /* Logically shrink the minibatch of input tensors
@@ -28,7 +28,7 @@ namespace vcudnn {
       void* tensor,
       std::vector<bool> const & mask,
       std::size_t new_batch_size,
-      BatchMaskingDirection direction = BatchMaskForward
+      BatchMaskingOperation direction = BatchMaskApply
       );
 
   // internal functions
@@ -36,7 +36,7 @@ namespace vcudnn {
       void * data,
       std::vector<bool> const & mask,
       std::size_t size,
-      BatchMaskingDirection direction);
+      BatchMaskingOperation direction);
 }
 
 

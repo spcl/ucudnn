@@ -19,11 +19,11 @@ TEST_CASE("Rearranging by empty mask it a no-op", "[rearrange]") {
   REQUIRE(data == data_copy);
 
   // forward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskForward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskApply);
   REQUIRE(data == data_copy);
 
   // backward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskBackward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskRevert);
   REQUIRE(data == data_copy);
 }
 
@@ -38,11 +38,11 @@ TEST_CASE("Rearranging by full mask it a no-op", "[rearrange]") {
   REQUIRE(data == data_copy);
 
   // forward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskForward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskApply);
   REQUIRE(data == data_copy);
 
   // backward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskBackward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskRevert);
   REQUIRE(data == data_copy);
 }
 
@@ -57,11 +57,11 @@ TEST_CASE("Can rearrange by mask", "[rearrange]") {
   REQUIRE(data != expected);
 
   // forward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskForward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskApply);
   REQUIRE(data == expected);
 
   // backward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskBackward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskRevert);
   REQUIRE(data == expected);
 }
 
@@ -76,7 +76,7 @@ TEST_CASE("Can undo rearrange", "[rearrange]") {
   REQUIRE(data != expected);
 
   // forward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskForward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskApply);
   REQUIRE(data == expected);
 
   // change the active values
@@ -87,7 +87,7 @@ TEST_CASE("Can undo rearrange", "[rearrange]") {
   expected = {10, 11, 19, 18, 14, 16, 16,  7, 18, 19};
 
   // backward application of mask
-  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskBackward);
+  rearrange_by_mask(pdata, mask, sizeof(int), BatchMaskRevert);
   REQUIRE(data == expected);
 }
 

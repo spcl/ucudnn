@@ -19,7 +19,7 @@ void applyBatchMask(
     void *tensor,
     const std::vector<bool> &mask,
     std::size_t new_batch_size,
-    BatchMaskingDirection direction) {
+    BatchMaskingOperation mask_op) {
 
   // TODO: this only works for NCHW without strides
   // TODO: fix strides
@@ -27,7 +27,7 @@ void applyBatchMask(
 
   // apply new mapping
   size_t batch_entry_size = desc.c * desc.h * desc.w;
-  rearrange_by_mask(tensor, mask, batch_entry_size, direction);
+  rearrange_by_mask(tensor, mask, batch_entry_size, mask_op);
 
   // update descriptor
   if(cudnn_desc != nullptr) {
@@ -50,7 +50,7 @@ void rearrange_by_mask(
     void * data,
     std::vector<bool> const & mask,
     std::size_t size,
-    BatchMaskingDirection direction) {
+    BatchMaskingOperation mask_op) {
   int next_empty_idx = 0;
   int last_used_idx = mask.size() - 1;
 
@@ -71,8 +71,8 @@ void rearrange_by_mask(
 
     if(next_empty_idx < last_used_idx) {
       // overwrite next_empty_idx with last_used_idx
-      size_t dst_idx = direction == BatchMaskForward ? next_empty_idx : last_used_idx;
-      size_t src_idx = direction == BatchMaskForward ? last_used_idx : next_empty_idx;
+      size_t dst_idx = mask_op == BatchMaskApply ? next_empty_idx : last_used_idx;
+      size_t src_idx = mask_op == BatchMaskApply ? last_used_idx : next_empty_idx;
 
       MEMCPY_FN(
             (uint8_t *)data + size * dst_idx,
